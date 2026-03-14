@@ -1,32 +1,30 @@
-# God's Celebrities — Official Website
+# God's Celebrities — Node.js Server
 
-## File Structure
+## Project Structure
+
 ```
-gods-celebrities-site/
-├── index.html      ← Main HTML structure
-├── styles.css      ← All styling and responsive design
-├── app.js          ← UI logic (admin overlay, tabs, helpers)
-├── firebase.js     ← Firebase init, Firestore & Auth operations
-└── README.md       ← This file
+gods-celebrities/
+├── server.js          ← Express server (serves the build folder)
+├── package.json       ← Dependencies & npm scripts
+├── build/             ← Static website files (served by the server)
+│   ├── index.html
+│   ├── styles.css
+│   ├── app.js
+│   └── firebase.js
+└── README.md
 ```
 
-## Setup Instructions
+---
 
-### 1. Create a Firebase Project
-1. Go to https://console.firebase.google.com
-2. Click **Add project** and follow the steps
-3. Enable **Firestore Database** (start in test mode first)
-4. Enable **Authentication → Sign-in method → Email/Password**
-5. Go to **Authentication → Users** and click **Add user** — enter your admin email and password
+## Quick Start
 
-### 2. Get Your Firebase Config
-1. In Firebase Console, go to **Project Settings → General**
-2. Scroll to **Your apps** and click the `</>` Web icon
-3. Register your app and copy the config object
+### 1. Install dependencies
+```bash
+npm install
+```
 
-### 3. Update firebase.js
-Open `firebase.js` and replace the placeholder config:
-
+### 2. Configure Firebase
+Open `build/firebase.js` and replace the placeholder config with your own:
 ```js
 const firebaseConfig = {
   apiKey:            "YOUR_API_KEY",
@@ -38,22 +36,65 @@ const firebaseConfig = {
 };
 ```
 
-### 4. Deploy
-You can host this on:
-- **Firebase Hosting** (recommended): `firebase deploy`
-- **Netlify**: drag and drop the folder
-- **Any web server**: upload all 4 files keeping the same folder structure
+### 3. Start the server
+```bash
+npm start
+```
+Then open → **http://localhost:3000**
 
-## Accessing the Admin Dashboard
-Press **Shift + A** on any page to open the hidden admin dashboard.
-Sign in with the admin email/password you created in Firebase Authentication.
+### 4. Development mode (auto-restart on file changes)
+```bash
+npm run dev
+```
 
-## Admin Features
-- **Celebrities tab** — Add, edit, and delete God's Celebrities (updates live on site)
-- **Testimonies tab** — View and delete submitted testimonies
-- **Settings tab** — Firebase config reference
+---
+
+## Firebase Setup
+
+1. Go to **https://console.firebase.google.com** → Create a project
+2. Enable **Firestore Database** (start in test mode)
+3. Enable **Authentication → Sign-in method → Email/Password**
+4. Go to **Authentication → Users → Add user** — set your admin email & password
+5. Go to **Project Settings → General → Your apps** → register a Web app → copy the config
+
+---
+
+## Admin Dashboard
+
+Press **Shift + A** anywhere on the website to open the hidden admin dashboard.
+Sign in with the admin email/password you created in Firebase Auth.
+
+### Admin features:
+- **Celebrities** — Add, edit, delete legends (appear live on the site)
+- **Testimonies** — View and moderate submitted testimonies
+- **Settings** — Firebase config reference
+
+---
+
+## Deploying to a Server (VPS / Cloud)
+
+```bash
+# On your server
+git clone <your-repo> gods-celebrities
+cd gods-celebrities
+npm install
+npm start
+
+# To keep it running permanently, use PM2:
+npm install -g pm2
+pm2 start server.js --name "gods-celebrities"
+pm2 save
+pm2 startup
+```
+
+The server runs on port **3000** by default.  
+To use a different port: `PORT=8080 npm start`
+
+---
 
 ## Firestore Collections
-The app uses two collections:
-- `celebrities` — name, title, scripture, story, sphere, createdAt
-- `testimonies` — name, message, createdAt
+
+| Collection    | Fields                                          |
+|---------------|-------------------------------------------------|
+| `celebrities` | name, title, scripture, story, sphere, createdAt |
+| `testimonies` | name, message, createdAt                        |

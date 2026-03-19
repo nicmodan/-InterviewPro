@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — InterviewPro Admin</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    body { background:var(--bg); min-height:100vh }
+    /* Auth loading overlay — shown while Firebase resolves */
+    #auth-loading { position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem }
+    .al-logo { width:56px;height:56px;background:var(--saffron);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;color:var(--navy);font-size:1.4rem }
+    .al-text { color:rgba(255,255,255,.6);font-size:.9rem }
+    .al-spin { width:24px;height:24px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:var(--saffron);animation:spinR .8s linear infinite }
+
+    .dash-layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 62px) }
+    @media(max-width:768px) { .dash-layout { grid-template-columns:1fr } .dash-sidebar { display:none } }
+
+    .dash-sidebar { background:var(--white); border-right:1px solid var(--line); padding:1.5rem 0 }
+    .sb-nav { display:flex; flex-direction:column; gap:.2rem; padding:0 .75rem }
+    .sb-link { display:flex; align-items:center; gap:.65rem; padding:.65rem .9rem; border-radius:var(--r-sm); color:var(--ink3); font-size:.88rem; font-weight:500; cursor:pointer; transition:all var(--tr) }
+    .sb-link:hover  { background:var(--line2); color:var(--ink) }
+    .sb-link.active { background:var(--navy); color:#fff }
+    .sb-link svg { width:17px; height:17px; flex-shrink:0 }
+    .sb-divider { height:1px; background:var(--line); margin:1rem .75rem }
+    .sb-section { font-size:.71rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink4); padding:.5rem .9rem }
+
+    .dash-main { padding:2rem; overflow:auto }
+    .tab-panel { display:none }
+    .tab-panel.active { display:block; animation:stepIn .3s ease }
+    @keyframes stepIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+    .link-box { background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%); border-radius:var(--r-lg); padding:1.8rem; color:#fff; display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; margin-bottom:2rem }
+    .link-box-left h3 { font-size:1.1rem; margin-bottom:.3rem }
+    .link-box-left p  { color:rgba(255,255,255,.55); font-size:.86rem }
+    .link-url-row { display:flex; gap:.6rem; margin-top:1rem; flex-wrap:wrap }
+    .link-url { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:var(--r-sm); padding:.6rem 1rem; font-size:.84rem; color:rgba(255,255,255,.85); flex:1; min-width:200px; word-break:break-all }
+    .link-stat { text-align:center }
+    .link-stat-num { font-family:'Sora',sans-serif; font-size:2rem; font-weight:800; color:var(--saffron) }
+    .link-stat-lbl { font-size:.78rem; color:rgba(255,255,255,.5) }
+
+    .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem }
+    @media(max-width:700px) { .settings-grid { grid-template-columns:1fr } }
+    .exam-tag { display:inline-flex; align-items:center; gap:.4rem; background:var(--navy); color:#fff; padding:.3rem .8rem; border-radius:20px; font-size:.8rem; font-weight:600; margin:.25rem }
+    .exam-tag button { background:none; border:none; cursor:pointer; color:rgba(255,255,255,.6); font-size:.9rem; line-height:1; margin-left:.2rem; padding:0 }
+    .exam-tag button:hover { color:#fff }
+    .add-exam-row { display:flex; gap:.5rem; margin-top:.8rem }
+
+    .action-btn { background:var(--line2); border:1px solid var(--line); padding:4px 10px; border-radius:6px; font-size:.78rem; font-weight:600; cursor:pointer; transition:all var(--tr) }
+    .action-btn:hover { background:var(--white); border-color:var(--ink3) }
+    .app-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:.7rem }
+    .ad-item .ad-l { font-size:.76px; color:var(--ink4); margin-bottom:2px; font-size:.76rem }
+    .ad-item .ad-v { font-weight:600; font-size:.9rem }
+    .bar-chart { display:flex; align-items:flex-end; gap:.5rem; height:160px; padding-top:1rem }
+    .bar-col { display:flex; flex-direction:column; align-items:center; gap:.3rem; flex:1 }
+    .bar { width:100%; border-radius:4px 4px 0 0; min-height:4px; transition:height .4s ease }
+    .bar-lbl { font-size:.7rem; color:var(--ink4); text-align:center }
+    .bar-val { font-size:.72rem; font-weight:700; color:var(--ink3) }
+  </style>
+</head>
+<body>
+
+<!-- Auth loading — shown while onAuthStateChanged resolves -->
+<div id="auth-loading">
+  <div class="al-logo">IP</div>
+  <div class="al-spin"></div>
+  <div class="al-text">Loading your dashboard…</div>
+</div>
+
+<div id="toast-wrap"></div>
+
+<!-- NAV -->
+<nav class="dash-nav" id="main-nav" style="display:none">
+  <div class="dash-nav-brand">
+    <div class="nav-logo">IP</div>
+    <span class="brand-name">InterviewPro</span>
+    <span class="brand-tag">Admin</span>
+  </div>
+  <div class="dash-nav-links">
+    <div class="nav-link active" onclick="switchTab('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview
+    </div>
+    <div class="nav-link" onclick="switchTab('applications')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Applications
+    </div>
+    <div class="nav-link" onclick="switchTab('payments')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Payments
+    </div>
+    <div class="nav-link" onclick="switchTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>Settings
+    </div>
+  </div>
+  <div class="nav-right">
+    <div style="font-size:.84rem;color:rgba(255,255,255,.6)" id="nav-admin-name"></div>
+    <div class="nav-avatar" id="nav-avatar">A</div>
+    <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.25)" onclick="doLogout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="dash-layout" id="dash-layout" style="display:none">
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <div class="sb-link active" onclick="switchTab('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview
+      </div>
+      <div class="sb-link" onclick="switchTab('applications')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Applications
+      </div>
+      <div class="sb-link" onclick="switchTab('payments')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Payments
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-section">Config</div>
+      <div class="sb-link" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Form Settings
+      </div>
+      <div class="sb-link" onclick="switchTab('exams')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Exam Options
+      </div>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+
+    <!-- OVERVIEW -->
+    <div id="tab-overview" class="tab-panel active">
+      <div class="link-box">
+        <div class="link-box-left">
+          <h3>🔗 Your Application Form Link</h3>
+          <p>Share this link with applicants. Only people with this link can access your form.</p>
+          <div class="link-url-row">
+            <div class="link-url" id="form-link-display">Generating…</div>
+            <button class="btn btn-saffron btn-sm" onclick="copyFormLink()">📋 Copy Link</button>
+            <a id="form-link-open" href="#" target="_blank" class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3)">Open ↗</a>
+          </div>
+        </div>
+        <div class="link-stat">
+          <div class="link-stat-num" id="link-total">0</div>
+          <div class="link-stat-lbl">Total Applications</div>
+        </div>
+      </div>
+
+      <div class="stat-grid mb-2" style="margin-bottom:1.5rem">
+        <div class="stat-card c-blue"><div class="stat-icon">📋</div><div class="stat-num" id="s-total">—</div><div class="stat-lbl">Total Applications</div></div>
+        <div class="stat-card c-green"><div class="stat-icon">✅</div><div class="stat-num" id="s-paid">—</div><div class="stat-lbl">Payments Received</div><div class="stat-trend up" id="s-revenue">₦0</div></div>
+        <div class="stat-card c-amber"><div class="stat-icon">⏳</div><div class="stat-num" id="s-pending">—</div><div class="stat-lbl">Pending Payments</div></div>
+        <div class="stat-card c-purple"><div class="stat-icon">📅</div><div class="stat-num" id="s-today">—</div><div class="stat-lbl">Today's Applications</div></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card"><h4>Gender Distribution</h4><canvas id="chart-gender" width="260" height="220"></canvas></div>
+        <div class="chart-card"><h4>Applications — Last 7 Days</h4><canvas id="chart-timeline" width="480" height="220"></canvas></div>
+      </div>
+    </div>
+
+    <!-- APPLICATIONS -->
+    <div id="tab-applications" class="tab-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.8rem">
+        <div><h2 style="font-size:1.4rem">All Applications</h2><p class="text-muted" id="apps-count" style="font-size:.84rem"></p></div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:.5rem;background:var(--white);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:.4rem .8rem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="search-input" placeholder="Search name, email…" style="border:none;outline:none;font-size:.84rem;width:180px;background:transparent" oninput="filterApps()"/>
+          </div>
+          <select id="status-filter" class="form-select" style="width:140px;padding:.4rem .8rem" onchange="filterApps()">
+            <option value="">All Status</option><option value="paid">Paid</option><option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Applicant</th><th>Email</th><th>Phone</th><th>Exam</th><th>Submitted</th><th>Payment</th><th>Action</th></tr></thead>
+          <tbody id="apps-tbody"><tr><td colspan="7" class="table-empty">Loading applications…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div id="tab-payments" class="tab-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.8rem">
+        <div><h2 style="font-size:1.4rem">Payment Records</h2><p class="text-muted" style="font-size:.84rem">All Monnify transactions</p></div>
+        <div style="background:var(--green-lt);border:1px solid rgba(34,197,94,.2);border-radius:var(--r-sm);padding:.5rem 1.2rem;font-size:.88rem;color:#15803d;font-weight:600">
+          Total Revenue: <strong id="total-revenue">₦0</strong>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Applicant</th><th>Amount</th><th>Reference</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="pay-tbody"><tr><td colspan="5" class="table-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FORM SETTINGS -->
+    <div id="tab-settings" class="tab-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <h2 style="font-size:1.4rem">Form Settings</h2>
+        <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+      </div>
+      <div class="settings-grid">
+        <div class="card">
+          <h3 style="font-size:1rem;margin-bottom:1.2rem">Form Details</h3>
+          <div class="form-group"><label class="form-label">Form / Portal Title</label><input type="text" id="set-title" class="form-input" placeholder="e.g. 2025 Exam Registration"/></div>
+          <div class="form-group"><label class="form-label">Description / Instructions</label><textarea id="set-desc" class="form-textarea" rows="3" placeholder="Instructions shown to applicants…"></textarea></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem;margin-bottom:1.2rem">Payment Settings</h3>
+          <div class="form-group">
+            <label class="form-label">Application Fee (₦)</label>
+            <div class="input-icon-wrap"><span class="i-icon" style="font-size:.9rem;font-weight:700;color:var(--ink3)">₦</span><input type="number" id="set-fee" class="form-input" placeholder="5000" min="100"/></div>
+            <p class="field-hint">Amount applicants pay via Monnify</p>
+          </div>
+          <div class="form-group"><label class="form-label">Monnify API Key</label><input type="text" id="set-monnify-key" class="form-input" value="MK_TEST_NDS2MBQEUJ"/></div>
+          <div class="form-group"><label class="form-label">Contract Code</label><input type="text" id="set-contract" class="form-input" value="1210042254"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXAM OPTIONS -->
+    <div id="tab-exams" class="tab-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <div><h2 style="font-size:1.4rem">Exam Options</h2><p class="text-muted" style="font-size:.84rem">Applicants choose from these on the form</p></div>
+      </div>
+      <div class="card">
+        <div id="exam-tags"></div>
+        <div class="add-exam-row">
+          <input type="text" id="new-exam" class="form-input" placeholder="e.g. SAT Prep" style="max-width:280px"/>
+          <button class="btn btn-primary btn-sm" onclick="addExam()">+ Add Exam</button>
+        </div>
+        <div class="divider"></div>
+        <button class="btn btn-saffron" onclick="saveExams()">💾 Save Exam Options</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Application Detail Modal -->
+<div id="modal-app" class="modal-overlay hidden" onclick="bgClose(event,'modal-app')">
+  <div class="modal-box wide">
+    <div class="modal-head"><h3>Application Detail</h3><button class="modal-close" onclick="closeModal('modal-app')">✕</button></div>
+    <div id="modal-app-body" class="modal-body"></div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { doc, getDoc, setDoc, getDocs, updateDoc, collection, query, orderBy, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+let adminData = null, adminId = null, allApps = [], allPayments = [], examOptions = [];
+
+// ── KEY FIX: show loading overlay until Firebase settles ───
+// onAuthStateChanged fires once with the resolved state.
+// We show a loading screen instead of redirecting immediately,
+// which prevents the flicker/bounce caused by premature redirects.
+onAuthStateChanged(auth, async (user) => {
+  const loader = document.getElementById('auth-loading');
+
+  if (!user) {
+    // Definitely not logged in — redirect to login
+    window.location.replace('login.html');
+    return;
+  }
+
+  // User is authenticated — load their admin profile
+  adminId = user.uid;
+
+  try {
+    let snap = await getDoc(doc(db, 'admins', adminId));
+
+    // If the admin doc doesn't exist yet (race condition after register),
+    // create a default one so the dashboard still loads correctly
+    if (!snap.exists()) {
+      const defaultData = {
+        firstName: user.displayName?.split(' ')[0] || 'Admin',
+        lastName:  user.displayName?.split(' ').slice(1).join(' ') || '',
+        organisation: '',
+        email: user.email,
+        role: 'admin',
+        createdAt: Timestamp.now(),
+        formSettings: {
+          applicationFee: 5000,
+          examOptions: ['JAMB 2025', 'WAEC 2025', 'NECO 2025', 'GCE', 'Common Entrance'],
+          formTitle: 'Application Form',
+          formDescription: 'Please complete all fields accurately.'
+        },
+        formLink: `${window.location.origin}/application-form.html?adminId=${adminId}`
+      };
+      await setDoc(doc(db, 'admins', adminId), defaultData);
+      snap = { exists: () => true, data: () => defaultData };
+    }
+
+    adminData = snap.data();
+
+  } catch (err) {
+    // Firestore read failed (likely permissions) — still show dashboard
+    // using Firebase Auth data so the user isn't kicked out unfairly
+    console.warn('Admin doc read failed, using Auth data:', err.message);
+    adminData = {
+      firstName: user.displayName?.split(' ')[0] || user.email.split('@')[0],
+      lastName: '',
+      organisation: '',
+      email: user.email,
+      formSettings: {
+        applicationFee: 5000,
+        examOptions: ['JAMB 2025', 'WAEC 2025', 'NECO 2025', 'GCE', 'Common Entrance'],
+        formTitle: 'Application Form',
+        formDescription: 'Complete all fields accurately.'
+      }
+    };
+  }
+
+  // Hide loader, show dashboard
+  loader.style.display = 'none';
+  document.getElementById('main-nav').style.display = 'flex';
+  document.getElementById('dash-layout').style.display = 'grid';
+
+  // Set nav info
+  const displayName = adminData.firstName || user.email;
+  document.getElementById('nav-admin-name').textContent = displayName;
+  document.getElementById('nav-avatar').textContent = displayName[0].toUpperCase();
+
+  // Load dashboard data
+  loadDashboard();
+});
+
+window.doLogout = async () => {
+  await signOut(auth);
+  window.location.replace('login.html');
+};
+
+// ── Dashboard ───────────────────────────────────────
+async function loadDashboard() {
+  // Form link
+  const link = `${window.location.origin}/application-form.html?adminId=${adminId}`;
+  document.getElementById('form-link-display').textContent = link;
+  document.getElementById('form-link-open').href = link;
+
+  // Settings
+  const fs = adminData.formSettings || {};
+  document.getElementById('set-title').value = fs.formTitle || '';
+  document.getElementById('set-desc').value  = fs.formDescription || '';
+  document.getElementById('set-fee').value   = fs.applicationFee || 5000;
+  examOptions = [...(fs.examOptions || ['JAMB 2025','WAEC 2025','NECO 2025','GCE','Common Entrance'])];
+  renderExamTags(examOptions);
+
+  // Data
+  await Promise.all([loadApplications(), loadPayments()]);
+  renderStats();
+  renderCharts();
+}
+
+// ── Applications ────────────────────────────────────
+async function loadApplications() {
+  try {
+    const snap = await getDocs(query(
+      collection(db, 'applications'),
+      where('adminId', '==', adminId),
+      orderBy('submittedAt', 'desc')
+    ));
+    allApps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAppsTable(allApps);
+    document.getElementById('apps-count').textContent = allApps.length + ' total applications';
+    document.getElementById('link-total').textContent = allApps.length;
+  } catch (e) {
+    // Likely needs a Firestore composite index — show empty state
+    document.getElementById('apps-tbody').innerHTML = `<tr><td colspan="7" class="table-empty">📭 No applications yet. Share your form link to get started!<br><small style="color:var(--ink4)">(If you just deployed, you may need to create the Firestore index — check browser console)</small></td></tr>`;
+  }
+}
+
+function renderAppsTable(apps) {
+  const tbody = document.getElementById('apps-tbody');
+  if (!apps.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="table-empty">📭 No applications yet. Share your form link to get started!</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = apps.map(a => `
+    <tr>
+      <td><strong>${a.personal?.firstName || ''} ${a.personal?.lastName || ''}</strong></td>
+      <td>${a.personal?.email || '—'}</td>
+      <td>${a.personal?.phone || '—'}</td>
+      <td><span class="badge badge-blue">${a.exam || '—'}</span></td>
+      <td>${fmtDate(a.submittedAt)}</td>
+      <td><span class="badge ${a.paymentStatus === 'paid' ? 'badge-green' : 'badge-amber'}">${a.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}</span></td>
+      <td><button class="action-btn" onclick="viewApp('${a.id}')">View →</button></td>
+    </tr>`).join('');
+}
+
+window.filterApps = () => {
+  const q  = document.getElementById('search-input').value.toLowerCase();
+  const st = document.getElementById('status-filter').value;
+  const f  = allApps.filter(a => {
+    const s = `${a.personal?.firstName} ${a.personal?.lastName} ${a.personal?.email}`.toLowerCase();
+    return (!q || s.includes(q)) && (!st || a.paymentStatus === st);
+  });
+  renderAppsTable(f);
+  document.getElementById('apps-count').textContent = f.length + ' result' + (f.length !== 1 ? 's' : '');
+};
+
+window.viewApp = (id) => {
+  const a = allApps.find(x => x.id === id);
+  if (!a) return;
+  const ans    = a.answers || {};
+  const ansHtml = Object.entries(ans).map(([q, v]) =>
+    `<div class="ad-item" style="grid-column:1/-1"><div class="ad-l">${q}</div><div class="ad-v">${v || '—'}</div></div>`).join('');
+  document.getElementById('modal-app-body').innerHTML = `
+    <div class="section-title">Personal Details</div>
+    <div class="app-detail-grid" style="margin-bottom:1rem">
+      <div class="ad-item"><div class="ad-l">Full Name</div><div class="ad-v">${a.personal?.firstName || ''} ${a.personal?.lastName || ''}</div></div>
+      <div class="ad-item"><div class="ad-l">Date of Birth</div><div class="ad-v">${a.personal?.dob || '—'}</div></div>
+      <div class="ad-item"><div class="ad-l">Gender</div><div class="ad-v">${a.personal?.gender || '—'}</div></div>
+      <div class="ad-item"><div class="ad-l">Phone</div><div class="ad-v">${a.personal?.phone || '—'}</div></div>
+      <div class="ad-item"><div class="ad-l">Email</div><div class="ad-v">${a.personal?.email || '—'}</div></div>
+      <div class="ad-item"><div class="ad-l">Nationality</div><div class="ad-v">${a.personal?.nationality || '—'}</div></div>
+    </div>
+    <div class="section-title">Address</div>
+    <div class="app-detail-grid" style="margin-bottom:1rem">
+      <div class="ad-item" style="grid-column:1/-1"><div class="ad-l">Street</div><div class="ad-v">${a.address?.street || '—'}</div></div>
+      <div class="ad-item"><div class="ad-l">City</div><div class="ad-v">${a.address?.city || '—'}</div></div>
+      <div class="ad-item"><div class="ad-l">State</div><div class="ad-v">${a.address?.state || '—'}</div></div>
+      <div class="ad-item"><div class="ad-l">Country</div><div class="ad-v">${a.address?.country || '—'}</div></div>
+    </div>
+    <div class="section-title">Exam &amp; Payment</div>
+    <div class="app-detail-grid" style="margin-bottom:1rem">
+      <div class="ad-item"><div class="ad-l">Exam</div><div class="ad-v"><span class="badge badge-blue">${a.exam || '—'}</span></div></div>
+      <div class="ad-item"><div class="ad-l">Payment</div><div class="ad-v"><span class="badge ${a.paymentStatus === 'paid' ? 'badge-green' : 'badge-amber'}">${a.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}</span></div></div>
+      <div class="ad-item"><div class="ad-l">Amount Paid</div><div class="ad-v">${a.paymentAmount ? '₦' + Number(a.paymentAmount).toLocaleString() : '—'}</div></div>
+      <div class="ad-item"><div class="ad-l">Submitted</div><div class="ad-v">${fmtDate(a.submittedAt)}</div></div>
+      <div class="ad-item" style="grid-column:1/-1"><div class="ad-l">Transaction Reference</div><div class="ad-v" style="font-size:.82rem;word-break:break-all">${a.paymentRef || '—'}</div></div>
+    </div>
+    ${Object.keys(ans).length ? `<div class="section-title">Custom Answers</div><div class="app-detail-grid">${ansHtml}</div>` : ''}`;
+  document.getElementById('modal-app').classList.remove('hidden');
+};
+
+// ── Payments ────────────────────────────────────────
+async function loadPayments() {
+  try {
+    const snap = await getDocs(query(
+      collection(db, 'payments'),
+      where('adminId', '==', adminId),
+      orderBy('paidAt', 'desc')
+    ));
+    allPayments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    let total = 0;
+    const rows = allPayments.map(p => {
+      total += p.amount || 0;
+      return `<tr>
+        <td><strong>${p.applicantName || '—'}</strong></td>
+        <td>₦${Number(p.amount || 0).toLocaleString()}</td>
+        <td><code style="font-size:.78rem">${p.reference || '—'}</code></td>
+        <td><span class="badge badge-green">✅ Paid</span></td>
+        <td>${fmtDate(p.paidAt)}</td>
+      </tr>`;
+    });
+    document.getElementById('pay-tbody').innerHTML = rows.length
+      ? rows.join('')
+      : `<tr><td colspan="5" class="table-empty">💳 No payments yet.</td></tr>`;
+    document.getElementById('total-revenue').textContent = '₦' + total.toLocaleString();
+  } catch (e) {
+    document.getElementById('pay-tbody').innerHTML = `<tr><td colspan="5" class="table-empty">💳 No payments yet.</td></tr>`;
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────
+function renderStats() {
+  const total   = allApps.length;
+  const paid    = allApps.filter(a => a.paymentStatus === 'paid').length;
+  const pending = total - paid;
+  const today   = allApps.filter(a => a.submittedAt?.toDate?.()?.toDateString() === new Date().toDateString()).length;
+  const revenue = allPayments.reduce((s, p) => s + (p.amount || 0), 0);
+  animCount('s-total',   total);
+  animCount('s-paid',    paid);
+  animCount('s-pending', pending);
+  animCount('s-today',   today);
+  document.getElementById('s-revenue').textContent = '₦' + revenue.toLocaleString() + ' received';
+  document.getElementById('link-total').textContent = total;
+}
+
+function animCount(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let c = 0;
+  const step = Math.max(1, Math.ceil(target / 20));
+  const iv = setInterval(() => { c = Math.min(c + step, target); el.textContent = c; if (c >= target) clearInterval(iv); }, 40);
+}
+
+// ── Charts ────────────────────────────────────────────
+function renderCharts() {
+  renderGenderChart();
+  renderTimelineChart();
+}
+
+function renderGenderChart() {
+  const canvas = document.getElementById('chart-gender');
+  const ctx    = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 260, 220);
+  const counts = {};
+  allApps.forEach(a => { const g = a.personal?.gender || 'Unknown'; counts[g] = (counts[g] || 0) + 1; });
+  const labels = Object.keys(counts), values = Object.values(counts);
+  if (!values.length) { ctx.fillStyle='#94a3b8'; ctx.font='13px DM Sans'; ctx.textAlign='center'; ctx.fillText('No data yet', 130, 110); return; }
+  const palette = ['#0b1120','#14b8a6','#f59e0b','#a855f7','#ef4444','#3b82f6'];
+  const total = values.reduce((a,b) => a+b, 0);
+  let ang = -Math.PI/2;
+  values.forEach((v, i) => { const sl=(v/total)*2*Math.PI; ctx.beginPath(); ctx.moveTo(130,88); ctx.arc(130,88,68,ang,ang+sl); ctx.closePath(); ctx.fillStyle=palette[i%palette.length]; ctx.fill(); ang+=sl; });
+  ctx.beginPath(); ctx.arc(130,88,68*.44,0,2*Math.PI); ctx.fillStyle='#fff'; ctx.fill();
+  ctx.fillStyle='#0f172a'; ctx.font='bold 16px Sora'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(total, 130, 88);
+  ctx.fillStyle='#94a3b8'; ctx.font='11px DM Sans'; ctx.fillText('total', 130, 104); ctx.textBaseline='alphabetic';
+  labels.forEach((l, i) => { const y=183+i*21; ctx.fillStyle=palette[i%palette.length]; ctx.fillRect(16,y,12,12); ctx.fillStyle='#475569'; ctx.font='11px DM Sans'; ctx.textAlign='left'; ctx.fillText(`${l} (${counts[l]})`, 34, y+11); });
+}
+
+function renderTimelineChart() {
+  const canvas = document.getElementById('chart-timeline');
+  const ctx    = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 480, 220);
+  const days=[], lbls=[], now=new Date();
+  for (let i=6; i>=0; i--) { const d=new Date(now); d.setDate(d.getDate()-i); days.push(d.toDateString()); lbls.push(d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})); }
+  const cnts = days.map(d => allApps.filter(a => a.submittedAt?.toDate?.()?.toDateString() === d).length);
+  const mx=Math.max(...cnts,1), W=480, H=220, pad={t:20,b:44,l:32,r:16};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b, col=cW/7, bW=col*.58;
+  [.25,.5,.75,1].forEach(p => { const y=pad.t+cH*(1-p); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#94a3b8'; ctx.font='11px DM Sans'; ctx.textAlign='right'; ctx.fillText(Math.round(mx*p),pad.l-4,y+4); });
+  cnts.forEach((v, i) => { const x=pad.l+i*col+(col-bW)/2, bH=(v/mx)*cH, y=pad.t+cH-bH; const gr=ctx.createLinearGradient(0,y,0,y+bH); gr.addColorStop(0,v>0?'#0b1120':'#e2e8f0'); gr.addColorStop(1,v>0?'#1e2d42':'#f1f5f9'); ctx.fillStyle=gr; ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(x,y,bW,Math.max(bH,2),[4,4,0,0]);else ctx.rect(x,y,bW,Math.max(bH,2)); ctx.fill(); if(v>0){ctx.fillStyle='#0b1120';ctx.font='bold 11px DM Sans';ctx.textAlign='center';ctx.fillText(v,x+bW/2,y-5);} ctx.fillStyle='#94a3b8';ctx.font='10px DM Sans';ctx.textAlign='center';ctx.fillText(lbls[i],x+bW/2,H-pad.b+16); });
+}
+
+// ── Settings ─────────────────────────────────────────
+window.saveSettings = async () => {
+  if (!adminId) return;
+  const settings = {
+    formTitle:       document.getElementById('set-title').value.trim(),
+    formDescription: document.getElementById('set-desc').value.trim(),
+    applicationFee:  Number(document.getElementById('set-fee').value) || 5000,
+    examOptions:     examOptions
+  };
+  try {
+    await updateDoc(doc(db, 'admins', adminId), { formSettings: settings });
+    adminData.formSettings = settings;
+    toast('success', 'Settings saved!', '');
+  } catch (e) { toast('error', 'Save failed', e.message); }
+};
+
+// ── Exams ─────────────────────────────────────────────
+function renderExamTags(opts) {
+  examOptions = [...opts];
+  document.getElementById('exam-tags').innerHTML =
+    examOptions.map((e,i) => `<span class="exam-tag">${e}<button onclick="removeExam(${i})">×</button></span>`).join('');
+}
+window.removeExam = (i) => { examOptions.splice(i, 1); renderExamTags(examOptions); };
+window.addExam    = () => { const inp=document.getElementById('new-exam'), v=inp.value.trim(); if(!v)return; if(!examOptions.includes(v)){examOptions.push(v);renderExamTags(examOptions);} inp.value=''; };
+window.saveExams  = async () => {
+  try { await updateDoc(doc(db,'admins',adminId),{'formSettings.examOptions':examOptions}); if(adminData.formSettings)adminData.formSettings.examOptions=examOptions; toast('success','Exam options saved!',''); }
+  catch(e){toast('error','Save failed',e.message);}
+};
+
+// ── Tab switching ─────────────────────────────────────
+window.switchTab = (tab) => {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.sb-link, .nav-link').forEach(l => {
+    l.classList.toggle('active', (l.getAttribute('onclick') || '').includes(`'${tab}'`));
+  });
+};
+
+// ── Link copy ──────────────────────────────────────────
+window.copyFormLink = () => {
+  const link = document.getElementById('form-link-display').textContent;
+  navigator.clipboard.writeText(link)
+    .then(() => toast('success', 'Link copied!', 'Send it to your applicants.'))
+    .catch(() => toast('info', 'Your link', link));
+};
+
+// ── Modals ─────────────────────────────────────────────
+window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+window.bgClose    = (e, id) => { if (e.target.classList.contains('modal-overlay')) closeModal(id); };
+
+// ── Util ───────────────────────────────────────────────
+function fmtDate(ts) {
+  if (!ts?.toDate) return '—';
+  return ts.toDate().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function toast(type, title, msg='', dur=4000) {
+  const icons={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const wrap=document.getElementById('toast-wrap'); const el=document.createElement('div');
+  el.className=`toast t-${type}`;
+  el.innerHTML=`<div class="t-ico">${icons[type]}</div><div class="t-body"><div class="t-title">${title}</div>${msg?`<div class="t-msg">${msg}</div>`:''}</div><button class="t-close" onclick="this.parentElement.remove()">✕</button>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.classList.add('leaving');setTimeout(()=>el.remove(),350);},dur);
+}
+</script>
+</body>
+</html>

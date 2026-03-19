@@ -1,0 +1,122 @@
+===================================================
+INTERVIEWPRO — SETUP GUIDE
+===================================================
+
+STEP 1 — Firebase Console
+  Go to: console.firebase.google.com
+  Project: modanmic-ai-power-exams
+
+  A) Authentication → Sign-in method → Email/Password → ENABLE
+
+  B) Firestore Database → Create database (production mode)
+
+  C) Firestore → Rules tab → Replace ALL rules with:
+
+─────────────────────────────────────────────
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admins — any authenticated user can read/write their own doc
+    match /admins/{adminId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == adminId;
+    }
+
+    // Applications — anyone can create (no login needed for applicants)
+    //               any authenticated user (admin) can read all
+    match /applications/{appId} {
+      allow create: if true;
+      allow read:   if request.auth != null;
+      allow update: if true;
+    }
+
+    // Payments — anyone can create; admins can read
+    match /payments/{payId} {
+      allow create: if true;
+      allow read:   if request.auth != null;
+    }
+  }
+}
+─────────────────────────────────────────────
+
+  D) Click "Publish" to save the rules.
+
+  E) Firestore → Indexes → Add composite index:
+     Collection: applications
+     Fields:     adminId (Ascending), submittedAt (Descending)
+     Click "Create" — takes ~2 minutes to build.
+     (Without this, applications tab will show empty until the
+      index is ready. You'll also see a link in the browser
+      console to auto-create it.)
+
+===================================================
+STEP 2 — Deploy
+  Option A (easiest — Netlify):
+    Go to netlify.com/drop
+    Drag and drop this entire folder
+    Done! Your site is live in 30 seconds.
+
+  Option B (Firebase Hosting):
+    npm install -g firebase-tools
+    firebase login
+    firebase init hosting   (set public dir = this folder, SPA = No)
+    firebase deploy
+
+===================================================
+STEP 3 — Create your Admin Account
+  1. Open your deployed site
+  2. Click "Get Started" or go to /register.html
+  3. Fill in your details → Create Account
+  4. You're taken straight to the dashboard.
+
+===================================================
+STEP 4 — Share Your Form Link
+  Dashboard → Overview → the blue box at the top
+  Click "📋 Copy Link"
+  Share via WhatsApp, email, SMS — any channel.
+
+  The link looks like:
+  https://yoursite.com/application-form.html?adminId=YOUR_UID
+
+  Applicants DO NOT need an account.
+  They just open the link and fill in the form.
+
+===================================================
+MONNIFY PAYMENT
+  Currently: isTestMode = true (test mode)
+  When ready to go live:
+    Open payment.html → change isTestMode to false
+
+  Test cards: use Monnify's test card numbers
+  (see app.monnify.com docs)
+
+===================================================
+FILE STRUCTURE
+  index.html            Beautiful landing page
+  login.html            Admin sign in (fixed redirect loop)
+  register.html         Admin registration
+  dashboard.html        Full admin dashboard
+  application-form.html 4-step applicant form (link-accessed)
+  payment.html          Monnify payment + confirmation
+  style.css             Shared stylesheet
+  app.js                Shared utility functions
+  firebase-config.js    Firebase init (shared)
+  SETUP.txt             This file
+
+===================================================
+WHY THE REDIRECT WAS HAPPENING
+  The original login.html redirected users immediately
+  if they weren't logged in, but Firebase Auth takes
+  ~300-500ms to resolve the session. The page would
+  briefly redirect to login even for logged-in users.
+
+  FIXED by:
+  1. Showing a loading overlay on dashboard.html until
+     onAuthStateChanged fires (instead of redirecting blind)
+  2. Using window.location.replace() instead of .href
+     (prevents back-button loops)
+  3. dashboard.html auto-creates the admin doc if missing
+     (handles race condition after register)
+  4. Better Firestore rules that don't accidentally block reads
+===================================================

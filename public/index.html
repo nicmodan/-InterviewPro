@@ -1,431 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>God's Celebrities</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InterviewPro — Online Application Portal</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ── Landing-specific ── */
+    body { background:var(--white); overflow-x:hidden }
+
+    /* Hero */
+    .hero {
+      background:var(--navy);
+      min-height:100vh;
+      display:flex; flex-direction:column;
+      position:relative; overflow:hidden;
+    }
+    .hero-nav {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1.4rem 3rem; position:relative; z-index:2;
+    }
+    .hero-logo { display:flex; align-items:center; gap:.75rem }
+    .hero-logo-mark { width:40px; height:40px; background:var(--saffron); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:800; color:var(--navy); font-size:1rem }
+    .hero-logo span  { font-family:'Sora',sans-serif; font-weight:700; color:#fff; font-size:1.1rem }
+    .hero-nav-links  { display:flex; gap:2rem }
+    .hero-nav-links a { color:rgba(255,255,255,.65); font-size:.9rem; font-weight:500; transition:color var(--tr) }
+    .hero-nav-links a:hover { color:#fff }
+    .hero-nav-cta { display:flex; gap:.7rem }
+
+    .hero-body {
+      flex:1; display:flex; align-items:center;
+      padding:4rem 3rem; position:relative; z-index:2;
+      max-width:1200px; margin:0 auto; width:100%; gap:4rem;
+    }
+    .hero-text { flex:1; max-width:580px }
+    .hero-eyebrow {
+      display:inline-flex; align-items:center; gap:.5rem;
+      background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.3);
+      color:var(--saffron); padding:5px 14px; border-radius:20px;
+      font-size:.8rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+      margin-bottom:1.5rem;
+    }
+    .hero-text h1 { font-size:3.5rem; color:#fff; line-height:1.1; margin-bottom:1.2rem }
+    .hero-text h1 span { color:var(--saffron) }
+    .hero-text p { color:rgba(255,255,255,.6); font-size:1.05rem; line-height:1.7; margin-bottom:2rem }
+    .hero-cta-row  { display:flex; gap:1rem; flex-wrap:wrap }
+    .hero-stats    { display:flex; gap:2.5rem; margin-top:3rem; padding-top:2rem; border-top:1px solid rgba(255,255,255,.1) }
+    .hstat-num  { font-family:'Sora',sans-serif; font-size:1.8rem; font-weight:800; color:#fff }
+    .hstat-lbl  { font-size:.82rem; color:rgba(255,255,255,.5) }
+
+    /* Hero illustration */
+    .hero-visual { flex:0 0 420px; position:relative }
+    .hero-card-mock {
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+      backdrop-filter:blur(12px); border-radius:var(--r-lg);
+      padding:2rem; animation:floatCard 4s ease-in-out infinite;
+    }
+    @keyframes floatCard { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+    .mock-row { display:flex; align-items:center; gap:.75rem; padding:.7rem 0; border-bottom:1px solid rgba(255,255,255,.07) }
+    .mock-row:last-child { border:none }
+    .mock-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0 }
+    .mock-a1 { background:linear-gradient(135deg,var(--saffron),var(--saf2)) }
+    .mock-a2 { background:linear-gradient(135deg,var(--teal),#0891b2) }
+    .mock-a3 { background:linear-gradient(135deg,var(--purple),#7c3aed) }
+    .mock-info { flex:1 }
+    .mock-name { font-size:.85rem; font-weight:600; color:#fff; margin-bottom:2px }
+    .mock-sub  { font-size:.75rem; color:rgba(255,255,255,.45) }
+    .mock-badge{ padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:700 }
+    .mock-paid { background:rgba(34,197,94,.2); color:#4ade80 }
+    .mock-pend { background:rgba(245,158,11,.2); color:var(--saffron) }
+    .hero-mini-stat { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-top:1.2rem }
+    .hms { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:var(--r-sm); padding:.9rem; text-align:center }
+    .hms-n { font-family:'Sora',sans-serif; font-size:1.5rem; font-weight:800; color:#fff }
+    .hms-l { font-size:.72rem; color:rgba(255,255,255,.45); margin-top:2px }
+
+    /* Deco */
+    .hero-deco { position:absolute; inset:0; pointer-events:none; overflow:hidden }
+    .deco-c { position:absolute; border-radius:50%; border:1px solid rgba(255,255,255,.04) }
+    .deco-c1 { width:700px; height:700px; top:-200px; right:-200px }
+    .deco-c2 { width:400px; height:400px; bottom:-100px; left:-100px; background:rgba(245,158,11,.04) }
+    .deco-grid {
+      position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+      background-size:60px 60px;
+    }
+
+    /* Features */
+    .features-section { padding:6rem 3rem; background:var(--bg) }
+    .section-head { text-align:center; margin-bottom:4rem }
+    .section-label { display:inline-block; background:var(--saf-lt); color:var(--saf2); padding:4px 14px; border-radius:20px; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:1rem }
+    .section-head h2 { font-size:2.2rem; margin-bottom:.7rem }
+    .section-head p  { color:var(--ink3); max-width:520px; margin:0 auto; font-size:.96rem }
+    .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1100px; margin:0 auto }
+    @media(max-width:760px) { .features-grid { grid-template-columns:1fr 1fr } }
+    @media(max-width:480px) { .features-grid { grid-template-columns:1fr } }
+    .feature-card { background:var(--white); border:1px solid var(--line); border-radius:var(--r-lg); padding:2rem; transition:transform var(--tr),box-shadow var(--tr) }
+    .feature-card:hover { transform:translateY(-4px); box-shadow:var(--sh-md) }
+    .feat-icon-wrap { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:1.2rem }
+    .fi-navy   { background:var(--navy2); }
+    .fi-amber  { background:var(--saf-lt) }
+    .fi-teal   { background:var(--teal-lt) }
+    .fi-blue   { background:var(--blue-lt) }
+    .fi-green  { background:var(--green-lt) }
+    .fi-purple { background:#f3e8ff }
+    .feature-card h3 { font-size:1.05rem; margin-bottom:.5rem }
+    .feature-card p  { font-size:.88rem; color:var(--ink3); line-height:1.6 }
+
+    /* How it works */
+    .how-section { padding:6rem 3rem; background:var(--navy); position:relative; overflow:hidden }
+    .how-section .section-head h2 { color:#fff }
+    .how-section .section-head p  { color:rgba(255,255,255,.55) }
+    .how-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; max-width:1000px; margin:0 auto; align-items:start }
+    @media(max-width:760px) { .how-grid { grid-template-columns:1fr } .how-section { padding:4rem 1.5rem } }
+    .how-side-label { font-size:.75rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:1.5rem }
+    .how-side-label.admin { color:var(--saffron) }
+    .how-side-label.appl  { color:var(--teal) }
+    .how-step { display:flex; gap:1rem; margin-bottom:1.4rem }
+    .how-num { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-size:.82rem; font-weight:800; flex-shrink:0; margin-top:2px }
+    .how-num.admin { background:rgba(245,158,11,.2); color:var(--saffron); border:1px solid rgba(245,158,11,.3) }
+    .how-num.appl  { background:rgba(20,184,166,.2); color:var(--teal);    border:1px solid rgba(20,184,166,.3) }
+    .how-info h4 { color:#fff; font-size:.95rem; margin-bottom:.25rem }
+    .how-info p  { color:rgba(255,255,255,.5); font-size:.84rem; line-height:1.6 }
+
+    /* CTA */
+    .cta-section { padding:6rem 3rem; text-align:center; background:var(--white) }
+    .cta-section h2 { font-size:2.5rem; margin-bottom:.8rem }
+    .cta-section p  { color:var(--ink3); font-size:1rem; margin-bottom:2rem }
+    .cta-row { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap }
+
+    /* Footer */
+    .footer { background:var(--navy); color:rgba(255,255,255,.4); text-align:center; padding:2rem; font-size:.84rem }
+    .footer span { color:var(--saffron) }
+
+    @media(max-width:900px) {
+      .hero-body    { flex-direction:column; padding:3rem 1.5rem; gap:3rem }
+      .hero-visual  { flex:none; width:100% }
+      .hero-nav     { padding:1.2rem 1.5rem }
+      .hero-text h1 { font-size:2.4rem }
+      .hero-nav-links { display:none }
+      .features-section,.how-section,.cta-section { padding:4rem 1.5rem }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ======================================================
-     NAVIGATION
-====================================================== -->
-<nav>
-  <div class="nav-logo">God <span>Celebrities</span> Rom 8:19</div>
-  <ul class="nav-links">
-    <li><a href="#about">About</a></li>
-    <li><a href="#legends">Hall of Legends</a></li>
-    <li><a href="#spheres">Spheres</a></li>
-    <li><a href="#testimonies">Testimonies</a></li>
-    <li><a href="#author">Author</a></li>
-    <li><a href="#connect">Connect</a></li>
-  </ul>
-</nav>
+<div id="toast-wrap"></div>
 
-<!-- ======================================================
-     HERO
-====================================================== -->
-<section id="hero">
-  <div class="hero-stars"></div>
-  <div class="hero-glow"></div>
-  <div class="hero-content">
-    <div class="hero-badge">✦ Celebrating God's Generales ✦</div>
-    <h1 class="hero-title">God's <span class="gold">Celebrities</span></h1>
-    <p class="hero-subtitle">Recognizing His Legends, Generals &amp; Icons — Being Their Voice</p>
-    <p class="hero-scripture">Romans 8:19 &nbsp;·&nbsp; Revelation 5:10</p>
-    <a href="#legends" class="hero-cta">Discover the Legends</a>
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-deco">
+    <div class="deco-grid"></div>
+    <div class="deco-c deco-c1"></div>
+    <div class="deco-c deco-c2"></div>
   </div>
-</section>
 
-<!-- ======================================================
-     ABOUT
-====================================================== -->
-<section id="about">
-  <div class="section-inner">
-    <div class="about-grid">
-      <div class="about-text">
-        <p class="section-label">Our Mission</p>
-        <h2 class="section-title">Unveiling the Reasons Behind Their Journey</h2>
-        <div class="divider"></div>
-        <p>God's Celebrities is all about celebrating God's People — recognizing His Legends, Generals, and Icons. We are committed to being their voice and unveiling the reasons behind their struggles, challenges, trials, and temptations.</p>
-        <p>We learn from their mistakes and errors, using their testimonies as a yardstick to empower, encourage, and support the upcoming generation and society at large.</p>
-        <div class="scripture-block">
-          <p>"For the earnest expectation of the creature waiteth for the manifestation of the sons of God."</p>
-          <cite>— Romans 8:19</cite>
-        </div>
-        <p>God's Celebrities are found in all spheres of life — influential people operating on various capacities. They are to rule in homes, in government, and in all affairs of life.</p>
+  <nav class="hero-nav">
+    <div class="hero-logo">
+      <div class="hero-logo-mark">IP</div>
+      <span>InterviewPro</span>
+    </div>
+    <div class="hero-nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+    </div>
+    <div class="hero-nav-cta">
+      <a href="login.html" class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)">Sign In</a>
+      <a href="register.html" class="btn btn-saffron">Get Started</a>
+    </div>
+  </nav>
+
+  <div class="hero-body">
+    <div class="hero-text">
+      <div class="hero-eyebrow">⚡ Online Application Portal</div>
+      <h1>Streamline your <span>interview</span> applications</h1>
+      <p>Create custom application forms, set fees, share links, and manage applicants — all in one powerful platform. Built for Nigerian educational institutions and recruitment agencies.</p>
+      <div class="hero-cta-row">
+        <a href="register.html" class="btn btn-saffron btn-lg">Start for Free →</a>
+        <a href="login.html"    class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.3)">Admin Login</a>
       </div>
-      <div class="about-visual">
-        <div class="stat-box"><div class="num">All</div><p>Spheres of Life</p></div>
-        <div class="stat-box"><div class="num">∞</div><p>Testimonies of Grace</p></div>
-        <div class="stat-box" style="grid-column: span 2;">
-          <div class="scripture-block" style="margin:0; text-align:left;">
-            <p style="font-size:1.1rem;">"And hast made us unto our God kings and priests: and we shall reign on the earth."</p>
-            <cite>— Revelation 5:10</cite>
-          </div>
+      <div class="hero-stats">
+        <div><div class="hstat-num">500+</div><div class="hstat-lbl">Applications handled</div></div>
+        <div><div class="hstat-num">₦0</div><div class="hstat-lbl">Setup cost</div></div>
+        <div><div class="hstat-num">99%</div><div class="hstat-lbl">Uptime</div></div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hero-card-mock">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem">
+          <span style="color:rgba(255,255,255,.7);font-size:.82rem;font-weight:600">Recent Applications</span>
+          <span style="color:var(--saffron);font-size:.76rem;font-weight:700">Live ●</span>
+        </div>
+        <div class="mock-row">
+          <div class="mock-avatar mock-a1"></div>
+          <div class="mock-info"><div class="mock-name">Amara Okafor</div><div class="mock-sub">JAMB 2025 · Lagos</div></div>
+          <span class="mock-badge mock-paid">Paid</span>
+        </div>
+        <div class="mock-row">
+          <div class="mock-avatar mock-a2"></div>
+          <div class="mock-info"><div class="mock-name">Chidi Eze</div><div class="mock-sub">WAEC Prep · Abuja</div></div>
+          <span class="mock-badge mock-pend">Pending</span>
+        </div>
+        <div class="mock-row">
+          <div class="mock-avatar mock-a3"></div>
+          <div class="mock-info"><div class="mock-name">Fatima Bello</div><div class="mock-sub">NECO Prep · Kano</div></div>
+          <span class="mock-badge mock-paid">Paid</span>
+        </div>
+        <div class="hero-mini-stat">
+          <div class="hms"><div class="hms-n">24</div><div class="hms-l">Today</div></div>
+          <div class="hms"><div class="hms-n">₦120k</div><div class="hms-l">Revenue</div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ======================================================
-     HALL OF LEGENDS
-====================================================== -->
-<section id="legends">
-  <div class="section-inner">
-    <p class="section-label">Hall of Legends</p>
-    <h2 class="section-title">God's Chosen Throughout the Ages</h2>
-    <div class="divider"></div>
-
-    <!-- Dynamic cards injected here by firebase.js; static fallbacks shown by default -->
-    <div class="legends-grid" id="dynamic-celebrities">
-      <div class="legend-card">
-        <div class="legend-crown">✦</div>
-        <h3>David</h3>
-        <p class="legend-role">The Psalmist and King</p>
-        <p class="legend-scripture">1 Samuel 16:13 · Psalm 23</p>
-        <p class="legend-story">A shepherd boy chosen by God, David faced giants, exile, betrayal, and personal failure — yet remained a man after God's own heart. His psalms remain the cry of every believer across generations.</p>
-        <span class="sphere-badge">Government &amp; Ministry</span>
-      </div>
-      <div class="legend-card">
-        <div class="legend-crown">✦</div>
-        <h3>Solomon</h3>
-        <p class="legend-role">The Wise King</p>
-        <p class="legend-scripture">1 Kings 3:12 · Proverbs 1:1</p>
-        <p class="legend-story">Endowed with divine wisdom beyond measure, Solomon built the Temple of God and governed with unmatched discernment. His life teaches us both the heights of wisdom and the consequences of compromise.</p>
-        <span class="sphere-badge">Leadership &amp; Wisdom</span>
-      </div>
-      <div class="legend-card">
-        <div class="legend-crown">✦</div>
-        <h3>Samson</h3>
-        <p class="legend-role">The Strong Judge</p>
-        <p class="legend-scripture">Judges 13:24 · Judges 16:28</p>
-        <p class="legend-story">Anointed with supernatural strength, Samson's story is one of destiny, vulnerability, and ultimate redemption. His struggle with temptation and his triumphant final act echo through the ages as a testament to God's grace.</p>
-        <span class="sphere-badge">Deliverance &amp; Power</span>
-      </div>
+<!-- ═══ FEATURES ═══ -->
+<section class="features-section" id="features">
+  <div class="section-head">
+    <div class="section-label">Everything you need</div>
+    <h2>Powerful features, simple to use</h2>
+    <p>Everything you need to run professional application processes from start to finish.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feat-icon-wrap fi-amber">🔗</div>
+      <h3>Shareable Form Links</h3>
+      <p>Generate a unique link for your application form. Share it anywhere — WhatsApp, email, social media. Only people with the link can access your form.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon-wrap fi-teal">📝</div>
+      <h3>Custom Exam Options</h3>
+      <p>Create and manage examination options that applicants select from. JAMB, WAEC, NECO, GCE — whatever you need.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon-wrap fi-navy">💳</div>
+      <h3>Monnify Payments</h3>
+      <p>Set your application fee and collect payments securely via Monnify. Instant confirmation for both you and the applicant.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon-wrap fi-blue">📊</div>
+      <h3>Analytics Dashboard</h3>
+      <p>Track total applications, payments received, pending fees, and approval status in real-time with beautiful charts.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon-wrap fi-green">✅</div>
+      <h3>Application Review</h3>
+      <p>View each applicant's full details — personal info, address, exam choice, and payment status — all in one place.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon-wrap fi-purple">🔒</div>
+      <h3>Secure Authentication</h3>
+      <p>Firebase-powered sign-up and login for admins. Applicants access forms through your unique shared link only.</p>
     </div>
   </div>
 </section>
 
-<!-- ======================================================
-     SPHERES OF INFLUENCE
-====================================================== -->
-<section id="spheres">
-  <div class="section-inner">
-    <p class="section-label">Spheres of Influence</p>
-    <h2 class="section-title">Where God's Celebrities Operate</h2>
-    <div class="divider"></div>
-    <div class="spheres-grid">
-      <div class="sphere-card">
-        <div class="sphere-icon">🏛️</div>
-        <h4>Government</h4>
-        <p>Kings, presidents, and leaders ordained to rule with justice and divine wisdom.</p>
-      </div>
-      <div class="sphere-card">
-        <div class="sphere-icon">🏠</div>
-        <h4>Home &amp; Family</h4>
-        <p>Fathers, mothers, and caregivers who build godly foundations for future generations.</p>
-      </div>
-      <div class="sphere-card">
-        <div class="sphere-icon">⛪</div>
-        <h4>Ministry</h4>
-        <p>Apostles, prophets, evangelists, pastors, and teachers — the five-fold ministry.</p>
-      </div>
-      <div class="sphere-card">
-        <div class="sphere-icon">📚</div>
-        <h4>Education</h4>
-        <p>Scholars and teachers who shape minds and nations through knowledge and truth.</p>
-      </div>
-      <div class="sphere-card">
-        <div class="sphere-icon">💼</div>
-        <h4>Business</h4>
-        <p>Entrepreneurs and merchants who steward wealth as instruments of Kingdom purpose.</p>
-      </div>
-      <div class="sphere-card">
-        <div class="sphere-icon">🎨</div>
-        <h4>Arts &amp; Culture</h4>
-        <p>Musicians, artists, and creatives who carry God's glory into culture and expression.</p>
-      </div>
+<!-- ═══ HOW IT WORKS ═══ -->
+<section class="how-section" id="how">
+  <div class="section-head">
+    <div class="section-label" style="background:rgba(245,158,11,.15);color:var(--saffron)">Simple process</div>
+    <h2>How it works</h2>
+    <p>Two roles, one seamless flow. Get up and running in minutes.</p>
+  </div>
+  <div class="how-grid">
+    <div>
+      <div class="how-side-label admin">🛡️ For Admins</div>
+      <div class="how-step"><div class="how-num admin">1</div><div class="how-info"><h4>Create your account</h4><p>Sign up with your email and password. Your admin dashboard is ready instantly.</p></div></div>
+      <div class="how-step"><div class="how-num admin">2</div><div class="how-info"><h4>Set up your form</h4><p>Add exam options, set the application fee, and customise interview questions.</p></div></div>
+      <div class="how-step"><div class="how-num admin">3</div><div class="how-info"><h4>Share the link</h4><p>Copy your unique form link and share it with applicants via any channel.</p></div></div>
+      <div class="how-step"><div class="how-num admin">4</div><div class="how-info"><h4>Track everything</h4><p>Monitor applications, payments, and analytics from your dashboard in real time.</p></div></div>
+    </div>
+    <div>
+      <div class="how-side-label appl">👤 For Applicants</div>
+      <div class="how-step"><div class="how-num appl">1</div><div class="how-info"><h4>Open the shared link</h4><p>Click the link shared by the institution. No account needed — just open and go.</p></div></div>
+      <div class="how-step"><div class="how-num appl">2</div><div class="how-info"><h4>Fill the form</h4><p>Enter personal details, address, and select your exam. Review before submitting.</p></div></div>
+      <div class="how-step"><div class="how-num appl">3</div><div class="how-info"><h4>Make payment</h4><p>Pay the application fee securely via Monnify — card, transfer, or USSD.</p></div></div>
+      <div class="how-step"><div class="how-num appl">4</div><div class="how-info"><h4>Get confirmation</h4><p>Receive instant confirmation of your application and payment on screen.</p></div></div>
     </div>
   </div>
 </section>
 
-<!-- ======================================================
-     TESTIMONIES
-====================================================== -->
-<section id="testimonies">
-  <div class="section-inner" style="text-align:center;">
-    <p class="section-label">Share Your Story</p>
-    <h2 class="section-title">Your Testimony Is a Yardstick</h2>
-    <div class="divider" style="margin: 1.5rem auto;"></div>
-    <p style="color:#9A8C70; max-width:600px; margin: 0 auto; line-height:1.8;">
-      Every trial, every triumph, every lesson — your story matters. Share it to empower the upcoming generation.
-    </p>
-    <div class="testimony-form">
-      <div class="admin-form-group">
-        <label>Your Name</label>
-        <input type="text" id="t-name" placeholder="Enter your name">
-      </div>
-      <div class="admin-form-group">
-        <label>Your Testimony</label>
-        <textarea id="t-message" placeholder="Share your story of faith, struggle, or victory..."></textarea>
-      </div>
-      <button class="submit-btn" onclick="submitTestimony()">Submit Testimony</button>
-      <div id="testimony-success">✦ Your testimony has been received. Thank you for sharing! ✦</div>
-    </div>
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <h2>Ready to get started?</h2>
+  <p>Join hundreds of institutions managing applications with InterviewPro.</p>
+  <div class="cta-row">
+    <a href="register.html" class="btn btn-primary btn-lg">Create Admin Account</a>
+    <a href="login.html"    class="btn btn-outline btn-lg">Sign In</a>
   </div>
 </section>
 
-<!-- ======================================================
-     AUTHOR
-====================================================== -->
-<section id="author">
-  <div class="section-inner">
-    <p class="section-label">Meet the Voice Behind the Vision</p>
-    <h2 class="section-title">The Author</h2>
-    <div class="divider"></div>
-    <div class="author-layout">
-      <div class="author-image-wrap">
-        <div class="author-image-frame">
-          <img src="author.jpeg" alt="Ambassador Eden Chinyere" class="author-photo">
-        </div>
-        <div class="author-crown-badge">✦ God's Celebrity ✦</div>
-      </div>
-      <div class="author-details">
-        <h3 class="author-name">Ambassador Eden Chinyere</h3>
-        <div class="author-divider"></div>
-        <p class="author-bio">A dynamic and multifaceted individual who excels in various fields. As a seasoned model, United Nations Ambassador for Peace, an interior decorator, minister and insurance personnel, Eden has made lasting impact in her industries with over 20 years of experience in advertisement and modeling, and 10 years in insurance.</p>
-        <p class="author-bio">In addition to her successful career, Eden is a devoted spiritual leader and an ordained minister in the Redeemed Christian Church of God (R.C.C.G). She is the Founder of <em>Sarah's Generation Global Fellowship</em> and CEO of <em>Vichy Intercontinental Ventures</em>.</p>
-        <div class="author-roles">
-          <div class="author-role-item">
-            <span class="role-icon">🌍</span>
-            <div>
-              <strong>UN Ambassador for Peace</strong>
-              <span>International Diplomacy</span>
-            </div>
-          </div>
-          <div class="author-role-item">
-            <span class="role-icon">⛪</span>
-            <div>
-              <strong>Ordained Minister · R.C.C.G</strong>
-              <span>Founder, Sarah's Generation Global Fellowship</span>
-            </div>
-          </div>
-          
-          <div class="author-role-item">
-            <span class="role-icon">💼</span>
-            <div>
-              <strong>CEO, Vichy Intercontinental Ventures</strong>
-              <span>10+ Years in Insurance</span>
-            </div>
-          </div>
-          <div class="author-role-item">
-            <span class="role-icon">👑</span>
-            <div>
-              <strong>Model & Interior Decorator</strong>
-              <span>20+ Years in Advertisement &amp; Modeling</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ======================================================
-     CONNECT / CONTACT
-====================================================== -->
-<section id="connect">
-  <div class="section-inner" style="text-align:center;">
-    <p class="section-label">Stay Connected</p>
-    <h2 class="section-title">Follow the Journey</h2>
-    <div class="divider" style="margin: 1.5rem auto;"></div>
-    <p class="connect-tagline">Join our community across all platforms — subscribe, follow, and be part of God's Celebrities movement.</p>
-
-    <div class="social-grid">
-
-      <!-- YouTube -->
-      <a class="social-card social-youtube" href="https://www.youtube.com/@GodsCelebritiesRom819" target="_blank" rel="noopener">
-        <div class="social-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36" aria-hidden="true">
-            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-          </svg>
-        </div>
-        <div class="social-info">
-          <span class="social-platform">YouTube</span>
-          <span class="social-handle">@GodsCelebritiesRom819</span>
-          <span class="social-cta-label">Subscribe &amp; Watch ↗</span>
-        </div>
-      </a>
-
-      <!-- Instagram -->
-      <a class="social-card social-instagram" href="https://www.instagram.com/GodsCelebritiesRom819" target="_blank" rel="noopener">
-        <div class="social-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="34" height="34" aria-hidden="true">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-          </svg>
-        </div>
-        <div class="social-info">
-          <span class="social-platform">Instagram</span>
-          <span class="social-handle">@GodsCelebritiesRom819</span>
-          <span class="social-cta-label">Follow &amp; Explore ↗</span>
-        </div>
-      </a>
-
-      <!-- Facebook -->
-      <a class="social-card social-facebook" href="https://www.facebook.com/groups/467061138617836/?ref=share&mibextid=NSMWBT" target="_blank" rel="noopener">
-        <div class="social-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="34" height="34" aria-hidden="true">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-          </svg>
-        </div>
-        <div class="social-info">
-          <span class="social-platform">Facebook Group</span>
-          <span class="social-handle">God's Celebrities</span>
-          <span class="social-cta-label">Join the Group ↗</span>
-        </div>
-      </a>
-
-    </div>
-  </div>
-</section>
-
-<!-- ======================================================
-     FOOTER
-====================================================== -->
-<footer>
-  <div class="footer-logo">God's Celebrities</div>
-  <p style="margin-bottom:0.5rem;">Celebrating God's People &nbsp;·&nbsp; Recognizing His Legends, Generals &amp; Icons</p>
-  <p>Romans 8:19 &nbsp;·&nbsp; Revelation 5:10</p>
-  <div class="footer-socials">
-    <a href="https://www.youtube.com/@GodsCelebritiesRom819" target="_blank" rel="noopener" aria-label="YouTube">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-    </a>
-    <a href="https://www.instagram.com/GodsCelebritiesRom819" target="_blank" rel="noopener" aria-label="Instagram">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-    </a>
-    <a href="https://www.facebook.com/groups/467061138617836/?ref=share&mibextid=NSMWBT" target="_blank" rel="noopener" aria-label="Facebook">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-    </a>
-  </div>
-  <p style="margin-top:1.5rem; font-size:0.75rem; color:#3D3525;">Press Shift + A to access Admin Dashboard</p>
+<footer class="footer">
+  <p>© 2025 <span>InterviewPro</span> · Powered by Firebase & Monnify · Built for Nigerian institutions</p>
 </footer>
 
-<!-- ======================================================
-     ADMIN OVERLAY
-====================================================== -->
-<div id="admin-overlay">
-  <div class="admin-wrapper">
-    <div class="admin-header">
-      <div>
-        <h1>✦ Admin Dashboard</h1>
-        <p id="admin-status"></p>
-      </div>
-      <div style="display:flex; gap:0.8rem; align-items:center;">
-        <button id="admin-signout-btn" onclick="adminLogout()">Sign Out</button>
-        <button class="admin-close" onclick="closeAdmin()">✕ Close</button>
-      </div>
-    </div>
-
-    <!-- LOGIN FORM -->
-    <div id="admin-login-form">
-      <p style="color:var(--text-muted); margin-bottom:1.5rem;">Sign in to manage God's Celebrities content.</p>
-      <p id="login-error"></p>
-      <input type="email"    id="admin-email" placeholder="Admin Email">
-      <input type="password" id="admin-pass"  placeholder="Password">
-      <button class="login-btn" onclick="adminLogin()">Sign In</button>
-    </div>
-
-    <!-- ADMIN CONTENT (shown after login) -->
-    <div id="admin-content" style="display:none;">
-      <div id="admin-tabs">
-        <button class="admin-tab active"  onclick="switchTab('celebrities')">Celebrities</button>
-        <button class="admin-tab"         onclick="switchTab('testimonies-admin')">Testimonies</button>
-        <button class="admin-tab"         onclick="switchTab('settings')">Settings</button>
-      </div>
-
-      <!-- CELEBRITIES PANEL -->
-      <div class="admin-panel active" id="panel-celebrities">
-        <h3 id="celeb-form-title" class="admin-section-title">Add New Celebrity</h3>
-        <input type="hidden" id="celeb-edit-id">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-          <div class="admin-form-group">
-            <label>Name</label>
-            <input type="text" id="celeb-name" placeholder="e.g. Esther">
-          </div>
-          <div class="admin-form-group">
-            <label>Title / Role</label>
-            <input type="text" id="celeb-title" placeholder="e.g. The Queen of Courage">
-          </div>
-          <div class="admin-form-group">
-            <label>Scripture Reference</label>
-            <input type="text" id="celeb-scripture" placeholder="e.g. Esther 4:14">
-          </div>
-          <div class="admin-form-group">
-            <label>Sphere of Influence</label>
-            <select id="celeb-sphere">
-              <option>Ministry</option>
-              <option>Government &amp; Leadership</option>
-              <option>Home &amp; Family</option>
-              <option>Business</option>
-              <option>Arts &amp; Culture</option>
-              <option>Education</option>
-              <option>Deliverance &amp; Power</option>
-            </select>
-          </div>
-        </div>
-        <div class="admin-form-group">
-          <label>Story / Description</label>
-          <textarea id="celeb-story" rows="4" placeholder="Share their story and lessons..."></textarea>
-        </div>
-        <button class="save-btn"  onclick="saveCeleb()">Save Celebrity</button>
-        <button class="clear-btn" onclick="clearCelebForm()">Clear Form</button>
-
-        <h3 class="admin-section-title">Existing Celebrities</h3>
-        <div id="admin-celeb-list"></div>
-      </div>
-
-      <!-- TESTIMONIES PANEL -->
-      <div class="admin-panel" id="panel-testimonies-admin">
-        <h3 class="admin-section-title">Submitted Testimonies</h3>
-        <div id="admin-testimony-list"></div>
-      </div>
-
-      <!-- SETTINGS PANEL -->
-      <div class="admin-panel" id="panel-settings">
-        <h3 class="admin-section-title">Firebase Configuration</h3>
-        <p style="color:var(--text-muted); line-height:1.8; margin-bottom:1.5rem;">
-          Replace the placeholder values in <strong style="color:var(--gold)">firebase.js</strong> with your own Firebase project credentials to activate live data.
-        </p>
-        <div style="background:rgba(201,168,76,0.05); border:1px solid rgba(201,168,76,0.15); padding:1.5rem;">
-          <pre style="font-family: monospace; font-size:0.85rem; color:var(--gold); line-height:2; white-space:pre-wrap;">
-apiKey:            "YOUR_API_KEY"
-authDomain:        "YOUR_PROJECT.firebaseapp.com"
-projectId:         "YOUR_PROJECT_ID"
-storageBucket:     "YOUR_PROJECT.appspot.com"
-messagingSenderId: "YOUR_SENDER_ID"
-appId:             "YOUR_APP_ID"</pre>
-        </div>
-        <p style="color:var(--text-muted); margin-top:1.5rem; font-size:0.9rem;">
-          Enable <strong style="color:var(--gold)">Firestore Database</strong> and
-          <strong style="color:var(--gold)">Authentication (Email/Password)</strong> in your Firebase console,
-          then create your first admin user.
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST HINT -->
-<div id="admin-toast"></div>
-
-<!-- Scripts -->
-<script src="app.js"></script>
-<script type="module" src="firebase.js"></script>
 </body>
 </html>

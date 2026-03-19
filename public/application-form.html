@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Application Form — InterviewPro</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    body { background:var(--bg); min-height:100vh }
+
+    /* Page header */
+    .form-header { background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%); padding:1.5rem 2rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 16px rgba(0,0,0,.25) }
+    .fh-brand { display:flex; align-items:center; gap:.7rem; color:#fff }
+    .fh-logo  { width:34px; height:34px; background:var(--saffron); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:800; color:var(--navy); font-size:.85rem }
+    .fh-title { font-family:'Sora',sans-serif; font-weight:700; font-size:1rem }
+    .fh-org   { font-size:.78rem; color:rgba(255,255,255,.5) }
+    .fh-steps { display:flex; align-items:center; gap:.3rem }
+    .fhs-item { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.2); transition:all var(--tr) }
+    .fhs-item.active { background:var(--saffron); width:24px; border-radius:4px }
+    .fhs-item.done   { background:var(--green) }
+
+    /* Main form area */
+    .form-outer { max-width:860px; margin:0 auto; padding:2.5rem 1.5rem 4rem; display:grid; grid-template-columns:220px 1fr; gap:2rem }
+    @media(max-width:760px) { .form-outer { grid-template-columns:1fr } .form-aside-steps { display:none } }
+
+    /* Aside */
+    .form-aside-steps { position:sticky; top:80px; align-self:start }
+    .as-item { display:flex; align-items:flex-start; gap:.8rem; padding:.7rem; border-radius:var(--r-sm); transition:background var(--tr) }
+    .as-item.active { background:var(--saf-xlt) }
+    .as-num  { width:28px; height:28px; border-radius:50%; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:.78rem; font-weight:700; color:var(--ink4); flex-shrink:0; transition:all var(--tr) }
+    .as-item.active .as-num { border-color:var(--saf2); color:var(--saf2); background:#fff }
+    .as-item.done   .as-num { background:var(--green); border-color:var(--green); color:#fff }
+    .as-info strong { display:block; font-size:.87rem; color:var(--ink); line-height:1.3 }
+    .as-info small  { font-size:.76rem; color:var(--ink4) }
+    .as-line { width:2px; height:22px; background:var(--line); margin-left:13px }
+
+    /* Progress bar */
+    .prog-bar { height:5px; background:var(--line); border-radius:3px; overflow:hidden; margin-bottom:2rem }
+    .prog-fill{ height:100%; background:linear-gradient(90deg,var(--saffron),var(--saf2)); border-radius:3px; transition:width .5s cubic-bezier(.4,0,.2,1) }
+
+    /* Step */
+    .fstep { display:none; animation:sIn .3s ease }
+    .fstep.active { display:block }
+    @keyframes sIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:none} }
+    .step-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.8rem; padding-bottom:1.2rem; border-bottom:1px solid var(--line) }
+    .sh-left{}
+    .step-tag { font-size:.73rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink4); display:block; margin-bottom:.4rem }
+    .step-head h2 { font-size:1.45rem }
+    .step-head p  { color:var(--ink3); font-size:.87rem; margin-top:.2rem }
+    .step-emoji { font-size:2.2rem; opacity:.3 }
+
+    /* Form grid */
+    .fg { display:grid; grid-template-columns:1fr 1fr; gap:0 1.2rem }
+    .fg .full { grid-column:1/-1 }
+    @media(max-width:520px) { .fg { grid-template-columns:1fr } .fg .full { grid-column:1 } }
+
+    /* Step footer */
+    .step-foot { display:flex; align-items:center; justify-content:space-between; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--line) }
+
+    /* Review sections */
+    .rv-sec { margin-bottom:1.4rem }
+    .rv-grid { display:grid; grid-template-columns:1fr 1fr; gap:.65rem }
+    .rv-item .rv-l { font-size:.76rem; color:var(--ink4); margin-bottom:2px }
+    .rv-item .rv-v { font-weight:600; font-size:.9rem }
+
+    /* Declaration */
+    .decl-box-wrap { background:var(--teal-lt); border:1.5px solid rgba(20,184,166,.2); border-radius:var(--r-sm); padding:1rem 1.2rem; margin-bottom:1.4rem }
+
+    /* Access denied */
+    .access-denied { text-align:center; padding:4rem 2rem; max-width:480px; margin:0 auto }
+    .access-denied .ad-icon { font-size:4rem; margin-bottom:1rem }
+    .access-denied h2 { font-size:1.6rem; margin-bottom:.6rem }
+    .access-denied p  { color:var(--ink3); margin-bottom:1.5rem }
+  </style>
+</head>
+<body>
+<div id="toast-wrap"></div>
+
+<!-- Header -->
+<div class="form-header">
+  <div class="fh-brand">
+    <div class="fh-logo">IP</div>
+    <div>
+      <div class="fh-title" id="fh-form-title">Application Form</div>
+      <div class="fh-org"  id="fh-org-name">Loading…</div>
+    </div>
+  </div>
+  <div class="fh-steps">
+    <div class="fhs-item active" id="fhs-1"></div>
+    <div class="fhs-item"        id="fhs-2"></div>
+    <div class="fhs-item"        id="fhs-3"></div>
+    <div class="fhs-item"        id="fhs-4"></div>
+  </div>
+</div>
+
+<!-- Access denied placeholder -->
+<div id="access-denied" class="access-denied hidden">
+  <div class="ad-icon">🔒</div>
+  <h2>Access Denied</h2>
+  <p>This form link is invalid or has expired. Please contact the institution for the correct link.</p>
+  <a href="index.html" class="btn btn-primary">← Go Home</a>
+</div>
+
+<!-- Form -->
+<div id="form-area" class="form-outer hidden">
+
+  <!-- Aside -->
+  <aside class="form-aside-steps">
+    <div class="as-item active" id="as-1"><div class="as-num">1</div><div class="as-info"><strong>Personal</strong><small>Name, DOB, contact</small></div></div>
+    <div class="as-line"></div>
+    <div class="as-item" id="as-2"><div class="as-num">2</div><div class="as-info"><strong>Address</strong><small>Your location</small></div></div>
+    <div class="as-line"></div>
+    <div class="as-item" id="as-3"><div class="as-num">3</div><div class="as-info"><strong>Exam &amp; Questions</strong><small>Exam choice &amp; answers</small></div></div>
+    <div class="as-line"></div>
+    <div class="as-item" id="as-4"><div class="as-num">4</div><div class="as-info"><strong>Review</strong><small>Confirm &amp; submit</small></div></div>
+  </aside>
+
+  <main>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:25%"></div></div>
+
+    <form id="app-form" novalidate>
+
+      <!-- STEP 1 -->
+      <div class="fstep active" id="step-1">
+        <div class="step-head">
+          <div class="sh-left">
+            <span class="step-tag">Step 1 of 4</span>
+            <h2>Personal Details</h2>
+            <p>Fields marked <span style="color:var(--red)">*</span> are required.</p>
+          </div>
+          <span class="step-emoji">👤</span>
+        </div>
+        <div class="fg">
+          <div class="form-group"><label class="form-label">First Name <span class="req">*</span></label><input type="text" name="firstName" class="form-input" placeholder="e.g. Amara" required/></div>
+          <div class="form-group"><label class="form-label">Last Name <span class="req">*</span></label><input type="text" name="lastName" class="form-input" placeholder="e.g. Okafor" required/></div>
+          <div class="form-group"><label class="form-label">Date of Birth <span class="req">*</span></label><input type="date" name="dob" class="form-input" required/></div>
+          <div class="form-group">
+            <label class="form-label">Gender <span class="req">*</span></label>
+            <select name="gender" class="form-select" required>
+              <option value="">Select…</option>
+              <option>Male</option><option>Female</option><option>Non-binary</option><option>Prefer not to say</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number <span class="req">*</span></label>
+            <div class="input-icon-wrap">
+              <svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/></svg>
+              <input type="tel" name="phone" class="form-input" placeholder="+234 800 000 0000" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address <span class="req">*</span></label>
+            <div class="input-icon-wrap">
+              <svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <input type="email" name="email" class="form-input" placeholder="you@example.com" required/>
+            </div>
+          </div>
+          <div class="form-group full"><label class="form-label">Nationality <span class="req">*</span></label><input type="text" name="nationality" class="form-input" placeholder="e.g. Nigerian" required/></div>
+        </div>
+        <div class="step-foot">
+          <div></div>
+          <button type="button" class="btn btn-primary" onclick="goNext(2)">Next: Address <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="fstep" id="step-2">
+        <div class="step-head">
+          <div class="sh-left"><span class="step-tag">Step 2 of 4</span><h2>Address Information</h2><p>Your current residential address.</p></div>
+          <span class="step-emoji">🏠</span>
+        </div>
+        <div class="fg">
+          <div class="form-group full"><label class="form-label">Street Address <span class="req">*</span></label><input type="text" name="street" class="form-input" placeholder="e.g. 14 Bode Thomas Street" required/></div>
+          <div class="form-group"><label class="form-label">City <span class="req">*</span></label><input type="text" name="city" class="form-input" placeholder="e.g. Lagos" required/></div>
+          <div class="form-group"><label class="form-label">State <span class="req">*</span></label><input type="text" name="state" class="form-input" placeholder="e.g. Lagos State" required/></div>
+          <div class="form-group"><label class="form-label">Postal Code</label><input type="text" name="postal" class="form-input" placeholder="e.g. 100001"/></div>
+          <div class="form-group"><label class="form-label">Country <span class="req">*</span></label><input type="text" name="country" class="form-input" placeholder="e.g. Nigeria" required/></div>
+          <div class="form-group full">
+            <label class="form-label">How long at this address?</label>
+            <div class="radio-group">
+              <label class="radio-pill"><input type="radio" name="duration" value="Under 1 year"/><span>Under 1 yr</span></label>
+              <label class="radio-pill"><input type="radio" name="duration" value="1-3 years"/><span>1–3 yrs</span></label>
+              <label class="radio-pill"><input type="radio" name="duration" value="3-5 years"/><span>3–5 yrs</span></label>
+              <label class="radio-pill"><input type="radio" name="duration" value="5+ years"/><span>5+ yrs</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="step-foot">
+          <button type="button" class="btn btn-outline" onclick="goBack(1)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+          <button type="button" class="btn btn-primary" onclick="goNext(3)">Next: Exam <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="fstep" id="step-3">
+        <div class="step-head">
+          <div class="sh-left"><span class="step-tag">Step 3 of 4</span><h2>Exam &amp; Questions</h2><p>Select your exam and answer the questions.</p></div>
+          <span class="step-emoji">📚</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Examination Preparing For <span class="req">*</span></label>
+          <select name="exam" id="exam-select" class="form-select" required>
+            <option value="">Select examination…</option>
+          </select>
+        </div>
+        <div id="custom-questions-container"></div>
+        <div class="step-foot">
+          <button type="button" class="btn btn-outline" onclick="goBack(2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+          <button type="button" class="btn btn-primary" onclick="goNext(4)">Review Application <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="fstep" id="step-4">
+        <div class="step-head">
+          <div class="sh-left"><span class="step-tag">Step 4 of 4</span><h2>Review &amp; Submit</h2><p>Check your details carefully before submitting.</p></div>
+          <span class="step-emoji">✅</span>
+        </div>
+        <div id="review-panel" style="background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r);padding:1.4rem;margin-bottom:1.4rem"></div>
+        <div class="decl-box-wrap">
+          <label class="check-label">
+            <input type="checkbox" id="decl"/>
+            <div class="check-box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <span>I declare that all information provided is accurate, truthful and complete to the best of my knowledge.</span>
+          </label>
+        </div>
+        <div class="step-foot">
+          <button type="button" class="btn btn-outline" onclick="goBack(3)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+          <button type="button" id="btn-submit" class="btn btn-saffron" onclick="submitForm()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Submit &amp; Pay</span>
+            <div class="spin dark hidden" id="submit-spin"></div>
+          </button>
+        </div>
+      </div>
+    </form>
+  </main>
+</div>
+
+<script type="module">
+import { db } from './firebase-config.js';
+import { doc, getDoc, addDoc, collection, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── Init ────────────────────────────────────────────
+const params  = new URLSearchParams(window.location.search);
+const adminId = params.get('adminId');
+let adminData = null, customQuestions = [], applicationId = null;
+
+if (!adminId) {
+  document.getElementById('access-denied').classList.remove('hidden');
+} else {
+  loadAdminForm();
+}
+
+async function loadAdminForm() {
+  try {
+    const snap = await getDoc(doc(db,'admins',adminId));
+    if (!snap.exists()) { document.getElementById('access-denied').classList.remove('hidden'); return; }
+    adminData = snap.data();
+    // Set header
+    document.getElementById('fh-form-title').textContent = adminData.formSettings?.formTitle || 'Application Form';
+    document.getElementById('fh-org-name').textContent   = adminData.organisation || '';
+    // Populate exam options
+    const sel = document.getElementById('exam-select');
+    (adminData.formSettings?.examOptions || ['JAMB','WAEC','NECO','GCE']).forEach(e=>{
+      const o=document.createElement('option'); o.value=e; o.textContent=e; sel.appendChild(o);
+    });
+    // Custom questions (if any stored on admin doc)
+    customQuestions = adminData.formSettings?.customQuestions || [];
+    renderCustomQs();
+    // Show form
+    document.getElementById('form-area').classList.remove('hidden');
+  } catch(e) {
+    document.getElementById('access-denied').classList.remove('hidden');
+  }
+}
+
+function renderCustomQs() {
+  const cont = document.getElementById('custom-questions-container');
+  cont.innerHTML = customQuestions.map((q,i)=>`
+    <div class="form-group" style="background:var(--white);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:1.1rem;margin-bottom:.8rem">
+      <label class="form-label"><span style="background:var(--navy);color:#fff;border-radius:5px;padding:2px 8px;font-size:.72rem;margin-right:.5rem">${i+1}</span>${q.text}${q.required?` <span class="req">*</span>`:''}</label>
+      ${q.type==='textarea'?`<textarea name="cq_${i}" class="form-input" style="min-height:80px;resize:vertical" ${q.required?'required':''}></textarea>`:
+        q.type==='select'?`<select name="cq_${i}" class="form-select" ${q.required?'required':''}><option value="">Choose…</option>${(q.options||[]).map(o=>`<option>${o}</option>`).join('')}</select>`:
+        `<input type="text" name="cq_${i}" class="form-input" placeholder="Your answer…" ${q.required?'required':''}/>`}
+    </div>`).join('');
+}
+
+// ── Step navigation ─────────────────────────────────
+let currentStep = 1;
+window.goNext = (n) => { if(!validateStep(currentStep)) return; if(n===4) buildReview(); goto(n); };
+window.goBack = (n) => goto(n);
+
+function goto(n) {
+  document.querySelectorAll('.fstep').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step-'+n).classList.add('active');
+  currentStep=n;
+  document.getElementById('prog-fill').style.width=(n/4*100)+'%';
+  // Sidebar
+  for(let i=1;i<=4;i++){const el=document.getElementById('as-'+i);if(!el)continue;el.classList.remove('active','done');if(i===n)el.classList.add('active');if(i<n)el.classList.add('done');}
+  // Dots
+  for(let i=1;i<=4;i++){const el=document.getElementById('fhs-'+i);if(!el)continue;el.classList.remove('active','done');if(i===n)el.classList.add('active');if(i<n)el.classList.add('done');}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function validateStep(step) {
+  const el=document.getElementById('step-'+step);
+  let ok=true;
+  el.querySelectorAll('[required]').forEach(f=>{
+    f.classList.remove('err');
+    if(!f.value.trim()){f.classList.add('err');ok=false;}
+    else f.classList.remove('err');
+  });
+  if(!ok) toast('warning','Required fields','Please fill in all required fields.'); return ok;
+}
+
+// ── Review panel ─────────────────────────────────────
+function buildReview() {
+  const fd=new FormData(document.getElementById('app-form')); const g=k=>fd.get(k)||'—';
+  const ansHtml = customQuestions.map((q,i)=>`<div class="rv-item" style="grid-column:1/-1"><div class="rv-l">${q.text}</div><div class="rv-v">${fd.get('cq_'+i)||'—'}</div></div>`).join('');
+  document.getElementById('review-panel').innerHTML=`
+    <div class="rv-sec"><div class="section-title">👤 Personal Details</div>
+      <div class="rv-grid">
+        <div class="rv-item"><div class="rv-l">Full Name</div><div class="rv-v">${g('firstName')} ${g('lastName')}</div></div>
+        <div class="rv-item"><div class="rv-l">Date of Birth</div><div class="rv-v">${g('dob')}</div></div>
+        <div class="rv-item"><div class="rv-l">Gender</div><div class="rv-v">${g('gender')}</div></div>
+        <div class="rv-item"><div class="rv-l">Phone</div><div class="rv-v">${g('phone')}</div></div>
+        <div class="rv-item"><div class="rv-l">Email</div><div class="rv-v">${g('email')}</div></div>
+        <div class="rv-item"><div class="rv-l">Nationality</div><div class="rv-v">${g('nationality')}</div></div>
+      </div>
+    </div>
+    <div class="rv-sec" style="margin-top:1rem"><div class="section-title">🏠 Address</div>
+      <div class="rv-grid">
+        <div class="rv-item" style="grid-column:1/-1"><div class="rv-l">Street</div><div class="rv-v">${g('street')}</div></div>
+        <div class="rv-item"><div class="rv-l">City</div><div class="rv-v">${g('city')}</div></div>
+        <div class="rv-item"><div class="rv-l">State</div><div class="rv-v">${g('state')}</div></div>
+        <div class="rv-item"><div class="rv-l">Country</div><div class="rv-v">${g('country')}</div></div>
+        <div class="rv-item"><div class="rv-l">Duration</div><div class="rv-v">${g('duration')}</div></div>
+      </div>
+    </div>
+    <div class="rv-sec" style="margin-top:1rem"><div class="section-title">📚 Exam Selection</div>
+      <div class="rv-grid">
+        <div class="rv-item"><div class="rv-l">Examination</div><div class="rv-v"><span class="badge badge-blue">${g('exam')}</span></div></div>
+      </div>
+    </div>
+    ${ansHtml?`<div class="rv-sec" style="margin-top:1rem"><div class="section-title">💬 Your Answers</div><div class="rv-grid">${ansHtml}</div></div>`:''}`;
+}
+
+// ── Submit ──────────────────────────────────────────
+window.submitForm = async function() {
+  if(!document.getElementById('decl').checked){ toast('warning','Declaration required','Please tick the declaration box.'); return; }
+  const btn=document.getElementById('btn-submit'), spin=document.getElementById('submit-spin');
+  btn.disabled=true; spin.classList.remove('hidden');
+  const fd=new FormData(document.getElementById('app-form')); const g=k=>fd.get(k)||'';
+  const answers={};
+  customQuestions.forEach((q,i)=>{answers[q.text]=fd.get('cq_'+i)||'';});
+  const payload={
+    adminId, applicantName:`${g('firstName')} ${g('lastName')}`,
+    personal:{ firstName:g('firstName'),lastName:g('lastName'),dob:g('dob'),gender:g('gender'),phone:g('phone'),email:g('email'),nationality:g('nationality') },
+    address:{ street:g('street'),city:g('city'),state:g('state'),postal:g('postal'),country:g('country'),duration:g('duration') },
+    exam:g('exam'), answers, paymentStatus:'pending', paymentRef:null, paymentAmount:null,
+    submittedAt:Timestamp.now()
+  };
+  try {
+    const ref = await addDoc(collection(db,'applications'),payload);
+    applicationId = ref.id;
+    // Redirect to payment page
+    window.location.href=`payment.html?appId=${applicationId}&adminId=${adminId}&name=${encodeURIComponent(payload.applicantName)}&email=${encodeURIComponent(payload.personal.email)}&amount=${adminData.formSettings?.applicationFee||5000}`;
+  } catch(e) {
+    toast('error','Submission failed',e.message);
+    btn.disabled=false; spin.classList.add('hidden');
+  }
+};
+
+function toast(type,title,msg=''){
+  const icons={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const wrap=document.getElementById('toast-wrap'); const el=document.createElement('div');
+  el.className=`toast t-${type}`;
+  el.innerHTML=`<div class="t-ico">${icons[type]}</div><div class="t-body"><div class="t-title">${title}</div>${msg?`<div class="t-msg">${msg}</div>`:''}</div><button class="t-close" onclick="this.parentElement.remove()">✕</button>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.classList.add('leaving');setTimeout(()=>el.remove(),350);},4000);
+}
+</script>
+</body>
+</html>

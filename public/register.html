@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account — InterviewPro</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    body { background:var(--navy); min-height:100vh; display:flex }
+    .auth-page { flex:1; display:grid; grid-template-columns:1fr 1fr; min-height:100vh }
+    @media(max-width:800px) { .auth-page { grid-template-columns:1fr } .auth-left { display:none } }
+    .auth-left { background:linear-gradient(160deg,#0a2a1a 0%,#0d3324 100%); padding:3.5rem; display:flex; flex-direction:column; justify-content:center; position:relative; overflow:hidden }
+    .auth-brand { display:flex; align-items:center; gap:.8rem; margin-bottom:3rem }
+    .auth-logo  { width:44px; height:44px; background:var(--teal); border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:800; color:#fff; font-size:1.1rem }
+    .auth-brand span { font-family:'Sora',sans-serif; font-weight:700; color:#fff; font-size:1.15rem }
+    .auth-left h2 { font-size:2.2rem; color:#fff; line-height:1.2; margin-bottom:1rem }
+    .auth-left h2 em { color:var(--teal); font-style:normal }
+    .auth-left p  { color:rgba(255,255,255,.55); font-size:.95rem; line-height:1.7; margin-bottom:2.5rem }
+    .step-list  { display:flex; flex-direction:column; gap:1rem }
+    .step-row   { display:flex; align-items:flex-start; gap:.8rem }
+    .step-n     { width:28px; height:28px; border-radius:50%; background:rgba(20,184,166,.2); border:1px solid rgba(20,184,166,.4); color:var(--teal); font-size:.78rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px }
+    .step-t     { font-size:.88rem; color:rgba(255,255,255,.65) }
+    .step-t strong { color:#fff }
+    .ald-deco { position:absolute; inset:0; pointer-events:none }
+    .ald-c { position:absolute; border-radius:50%; border:1px solid rgba(20,184,166,.06) }
+    .ald-c1 { width:350px; height:350px; top:-80px; right:-80px }
+    .ald-c2 { width:200px; height:200px; bottom:80px; left:60px }
+    .auth-right { background:var(--bg); display:flex; align-items:center; justify-content:center; padding:2rem }
+    .auth-card  { background:var(--white); border-radius:var(--r-xl); padding:2.5rem; width:100%; max-width:440px; box-shadow:var(--sh-xl); animation:cardIn .4s cubic-bezier(.34,1.3,.64,1) }
+    @keyframes cardIn { from{opacity:0;transform:translateY(16px) scale(.97)} to{opacity:1;transform:none} }
+    .auth-card h2 { font-size:1.55rem; margin-bottom:.3rem }
+    .auth-card > p { color:var(--ink3); font-size:.88rem; margin-bottom:1.8rem }
+    .auth-err { background:var(--red-lt); border:1px solid rgba(239,68,68,.2); border-radius:var(--r-sm); padding:.65rem .9rem; font-size:.84rem; color:var(--red); margin-bottom:1rem }
+    .auth-switch { text-align:center; margin-top:1.2rem; font-size:.86rem; color:var(--ink3) }
+    .auth-switch a { color:var(--navy); font-weight:700 }
+
+    body.checking::after { content:''; position:fixed; inset:0; background:var(--navy); z-index:9999 }
+  </style>
+</head>
+<body class="checking">
+<div id="toast-wrap"></div>
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="ald-deco"><div class="ald-c ald-c1"></div><div class="ald-c ald-c2"></div></div>
+    <div style="position:relative;z-index:1">
+      <div class="auth-brand"><div class="auth-logo">IP</div><span>InterviewPro</span></div>
+      <h2>Start managing <em>applications</em> today</h2>
+      <p>Create your free admin account and share your form link in under 5 minutes.</p>
+      <div class="step-list">
+        <div class="step-row"><div class="step-n">1</div><div class="step-t"><strong>Create your account</strong> — takes 30 seconds</div></div>
+        <div class="step-row"><div class="step-n">2</div><div class="step-t"><strong>Set up your form</strong> — add exams and fees</div></div>
+        <div class="step-row"><div class="step-n">3</div><div class="step-t"><strong>Share your link</strong> — applicants fill in details</div></div>
+        <div class="step-row"><div class="step-n">4</div><div class="step-t"><strong>Collect payments</strong> — Monnify handles everything</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2>Create your account</h2>
+      <p>Admin access only. Applicants use the shared link.</p>
+
+      <div id="auth-err" class="auth-err hidden"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name <span class="req">*</span></label>
+          <input type="text" id="fname" class="form-input" placeholder="Amara" autocomplete="given-name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name <span class="req">*</span></label>
+          <input type="text" id="lname" class="form-input" placeholder="Okafor" autocomplete="family-name"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Organisation / Institution <span class="req">*</span></label>
+        <input type="text" id="org" class="form-input" placeholder="e.g. Bright Future Academy"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address <span class="req">*</span></label>
+        <div class="input-icon-wrap">
+          <svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="email" class="form-input" placeholder="admin@school.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password <span class="req">*</span></label>
+        <div class="input-icon-wrap">
+          <svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="password" class="form-input" placeholder="Min. 6 characters" oninput="checkPw(this.value)" autocomplete="new-password"/>
+          <button class="eye-toggle" onclick="toggleEye()" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="pw-track"><div class="pw-fill" id="pw-fill" style="width:0%"></div></div>
+        <p class="pw-text" id="pw-text"></p>
+      </div>
+      <label class="check-label" style="margin-bottom:1rem">
+        <input type="checkbox" id="agree"/>
+        <div class="check-box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span>I agree to the <a href="#" style="color:var(--navy);font-weight:600">Terms of Service</a></span>
+      </label>
+      <button class="btn btn-primary btn-full" id="btn-reg" onclick="doRegister()">
+        <span>Create Account</span>
+        <div class="spin hidden" id="reg-spin"></div>
+      </button>
+      <div class="auth-switch mt-2">Already have an account? <a href="login.html">Sign in →</a></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { doc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// If already logged in, go to dashboard
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window.location.replace('dashboard.html');
+  } else {
+    document.body.classList.remove('checking');
+  }
+});
+
+window.toggleEye = function() {
+  const el = document.getElementById('password');
+  el.type = el.type === 'password' ? 'text' : 'password';
+};
+
+window.checkPw = function(pw) {
+  const fill = document.getElementById('pw-fill');
+  const text = document.getElementById('pw-text');
+  if (!pw) { fill.style.width='0%'; text.textContent=''; return; }
+  let s = 0;
+  if (pw.length >= 6)  s++;
+  if (pw.length >= 10) s++;
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) s++;
+  if (/\d/.test(pw)) s++;
+  if (/[^a-zA-Z0-9]/.test(pw)) s++;
+  const lvls = [
+    {p:'20%',c:'#ef4444',t:'Very weak'},
+    {p:'40%',c:'#f97316',t:'Weak'},
+    {p:'60%',c:'#eab308',t:'Fair'},
+    {p:'80%',c:'#22c55e',t:'Strong'},
+    {p:'100%',c:'#10b981',t:'Very strong!'}
+  ];
+  const l = lvls[Math.min(s-1, 4)] || lvls[0];
+  fill.style.width=l.p; fill.style.background=l.c;
+  text.textContent=l.t; text.style.color=l.c;
+};
+
+window.doRegister = async function() {
+  const fname = document.getElementById('fname').value.trim();
+  const lname = document.getElementById('lname').value.trim();
+  const org   = document.getElementById('org').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const pw    = document.getElementById('password').value;
+  const agree = document.getElementById('agree').checked;
+  const errEl = document.getElementById('auth-err');
+  errEl.classList.add('hidden');
+
+  if (!fname || !lname)  return setErr('Please enter your first and last name.');
+  if (!org)              return setErr('Please enter your organisation name.');
+  if (!email)            return setErr('Please enter your email address.');
+  if (pw.length < 6)     return setErr('Password must be at least 6 characters.');
+  if (!agree)            return setErr('Please agree to the Terms of Service.');
+
+  const btn  = document.getElementById('btn-reg');
+  const spin = document.getElementById('reg-spin');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Creating account…';
+  spin.classList.remove('hidden');
+
+  try {
+    // 1. Create Firebase Auth account
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+
+    // 2. Update display name
+    await updateProfile(cred.user, { displayName: `${fname} ${lname}` });
+
+    // 3. Write admin document to Firestore
+    //    IMPORTANT: We await this fully before redirecting.
+    //    If this fails, we still redirect (the dashboard will auto-create it).
+    try {
+      await setDoc(doc(db, 'admins', cred.user.uid), {
+        firstName:   fname,
+        lastName:    lname,
+        organisation: org,
+        email,
+        role: 'admin',
+        createdAt: Timestamp.now(),
+        formSettings: {
+          applicationFee:  5000,
+          examOptions:     ['JAMB 2025', 'WAEC 2025', 'NECO 2025', 'GCE', 'Common Entrance'],
+          formTitle:       'Application Form',
+          formDescription: 'Please complete all fields accurately.'
+        }
+      });
+    } catch (firestoreErr) {
+      // Firestore write failed (usually permissions) — dashboard will handle it
+      console.warn('Firestore write failed during register:', firestoreErr.message);
+    }
+
+    // 4. Redirect to dashboard — onAuthStateChanged on dashboard will handle the rest
+    btn.querySelector('span').textContent = 'Account created! Redirecting…';
+    window.location.replace('dashboard.html');
+
+  } catch (e) {
+    const msgs = {
+      'auth/email-already-in-use': 'This email is already registered. Try signing in.',
+      'auth/weak-password':        'Password is too weak. Use at least 6 characters.',
+      'auth/invalid-email':        'Please enter a valid email address.',
+    };
+    setErr(msgs[e.code] || e.message);
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Create Account';
+    spin.classList.add('hidden');
+  }
+
+  function setErr(m) { errEl.textContent = '⚠️ ' + m; errEl.classList.remove('hidden'); }
+};
+</script>
+</body>
+</html>

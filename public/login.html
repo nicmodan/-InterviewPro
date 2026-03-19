@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login — InterviewPro</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    body { background:var(--navy); min-height:100vh; display:flex; flex-direction:column }
+    .auth-page { flex:1; display:grid; grid-template-columns:1fr 1fr; min-height:100vh }
+    @media(max-width:800px) { .auth-page { grid-template-columns:1fr } .auth-left { display:none } }
+
+    .auth-left { background:linear-gradient(160deg,var(--navy2) 0%,var(--navy3) 100%); padding:3.5rem; display:flex; flex-direction:column; justify-content:space-between; position:relative; overflow:hidden }
+    .auth-brand { display:flex; align-items:center; gap:.8rem; margin-bottom:3rem }
+    .auth-logo { width:44px; height:44px; background:var(--saffron); border-radius:12px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:800; color:var(--navy); font-size:1.1rem }
+    .auth-brand span { font-family:'Sora',sans-serif; font-weight:700; color:#fff; font-size:1.15rem }
+    .auth-left h2 { font-size:2.2rem; color:#fff; line-height:1.2; margin-bottom:1rem }
+    .auth-left h2 em { color:var(--saffron); font-style:normal }
+    .auth-left p  { color:rgba(255,255,255,.55); font-size:.95rem; line-height:1.7; margin-bottom:2.5rem }
+    .auth-perks { display:flex; flex-direction:column; gap:.9rem }
+    .auth-perk { display:flex; align-items:center; gap:.75rem; color:rgba(255,255,255,.7); font-size:.9rem }
+    .perk-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0 }
+    .ald-deco { position:absolute; inset:0; pointer-events:none }
+    .ald-c { position:absolute; border-radius:50%; border:1px solid rgba(255,255,255,.05) }
+    .ald-c1 { width:380px; height:380px; top:-80px; right:-100px }
+    .ald-c2 { width:220px; height:220px; bottom:60px; right:60px; background:rgba(245,158,11,.04) }
+    .ald-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px); background-size:48px 48px }
+
+    .auth-right { background:var(--bg); display:flex; align-items:center; justify-content:center; padding:2rem }
+    .auth-card { background:var(--white); border-radius:var(--r-xl); padding:2.5rem; width:100%; max-width:420px; box-shadow:var(--sh-xl); animation:cardIn .4s cubic-bezier(.34,1.3,.64,1) }
+    @keyframes cardIn { from{opacity:0;transform:translateY(16px) scale(.97)} to{opacity:1;transform:none} }
+    .auth-card h2 { font-size:1.55rem; margin-bottom:.3rem }
+    .auth-card > p { color:var(--ink3); font-size:.88rem; margin-bottom:1.8rem }
+    .auth-err { background:var(--red-lt); border:1px solid rgba(239,68,68,.2); border-radius:var(--r-sm); padding:.65rem .9rem; font-size:.84rem; color:var(--red); margin-bottom:1rem }
+    .auth-switch { text-align:center; margin-top:1.2rem; font-size:.86rem; color:var(--ink3) }
+    .auth-switch a { color:var(--navy); font-weight:700 }
+
+    /* Prevent flash of login page when already authenticated */
+    body.checking .auth-page { opacity:0 }
+    body.checking::after { content:''; position:fixed; inset:0; background:var(--navy); z-index:9999 }
+  </style>
+</head>
+<body class="checking">
+<div id="toast-wrap"></div>
+
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="ald-deco">
+      <div class="ald-grid"></div>
+      <div class="ald-c ald-c1"></div>
+      <div class="ald-c ald-c2"></div>
+    </div>
+    <div style="position:relative;z-index:1">
+      <div class="auth-brand">
+        <div class="auth-logo">IP</div>
+        <span>InterviewPro</span>
+      </div>
+      <h2>Manage your <em>applications</em> with ease</h2>
+      <p>Sign in to your admin dashboard to view applicants, track payments, and share your form link.</p>
+      <div class="auth-perks">
+        <div class="auth-perk"><span class="perk-dot" style="background:var(--saffron)"></span> Real-time application tracking</div>
+        <div class="auth-perk"><span class="perk-dot" style="background:var(--teal)"></span> Monnify payment integration</div>
+        <div class="auth-perk"><span class="perk-dot" style="background:var(--green)"></span> Analytics &amp; reporting dashboard</div>
+        <div class="auth-perk"><span class="perk-dot" style="background:var(--blue)"></span> Shareable application form links</div>
+      </div>
+    </div>
+    <div style="position:relative;z-index:1">
+      <p style="color:rgba(255,255,255,.3);font-size:.8rem">New to InterviewPro? <a href="register.html" style="color:var(--saffron);font-weight:700">Create a free account →</a></p>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2>Welcome back</h2>
+      <p>Sign in to your admin account to continue</p>
+
+      <div id="auth-err" class="auth-err hidden"></div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <div class="input-icon-wrap">
+          <svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="email" class="form-input" placeholder="admin@example.com" autocomplete="email"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-icon-wrap">
+          <svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="password" class="form-input" placeholder="••••••••" autocomplete="current-password"/>
+          <button class="eye-toggle" onclick="toggleEye()" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btn-login" onclick="doLogin()" style="margin-top:.5rem">
+        <span>Sign In</span>
+        <div class="spin hidden" id="login-spin"></div>
+      </button>
+
+      <div class="auth-switch mt-2">Don't have an account? <a href="register.html">Create one →</a></div>
+      <div class="auth-switch mt-1"><a href="index.html" style="color:var(--ink3)">← Back to home</a></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth } from './firebase-config.js';
+import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ── KEY FIX: wait for auth state before showing page ─
+// This prevents the flash where a logged-in user sees the
+// login form for a split second before being redirected.
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // Already logged in → go straight to dashboard
+    window.location.replace('dashboard.html');
+  } else {
+    // Not logged in → show the login form
+    document.body.classList.remove('checking');
+  }
+});
+
+window.toggleEye = function() {
+  const el = document.getElementById('password');
+  el.type = el.type === 'password' ? 'text' : 'password';
+};
+
+window.doLogin = async function() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('btn-login');
+  const spin     = document.getElementById('login-spin');
+  const errEl    = document.getElementById('auth-err');
+  errEl.classList.add('hidden');
+
+  if (!email)    return showErr('Please enter your email address.');
+  if (!password) return showErr('Please enter your password.');
+
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Signing in…';
+  spin.classList.remove('hidden');
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    // onAuthStateChanged will fire and redirect to dashboard
+    btn.querySelector('span').textContent = 'Redirecting…';
+  } catch (e) {
+    const msgs = {
+      'auth/user-not-found':    'No account found with this email.',
+      'auth/wrong-password':    'Incorrect password. Please try again.',
+      'auth/invalid-credential':'Email or password is incorrect.',
+      'auth/invalid-email':     'Please enter a valid email address.',
+      'auth/too-many-requests': 'Too many failed attempts. Please wait a moment.',
+      'auth/network-request-failed': 'Network error. Check your connection.',
+    };
+    showErr(msgs[e.code] || 'Sign in failed. Please try again.');
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Sign In';
+    spin.classList.add('hidden');
+  }
+};
+
+function showErr(msg) {
+  const el = document.getElementById('auth-err');
+  el.textContent = '⚠️ ' + msg;
+  el.classList.remove('hidden');
+}
+
+// Enter key to submit
+document.getElementById('password')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.doLogin();
+});
+document.getElementById('email')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('password').focus();
+});
+</script>
+</body>
+</html>

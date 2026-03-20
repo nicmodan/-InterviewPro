@@ -1,7 +1,27 @@
 ===================================================
-INTERVIEWPRO — SETUP GUIDE
+UNITE 13 ADEOTA — SETUP GUIDE
+2025/2026 Academic Session
 ===================================================
 
+FILE STRUCTURE
+───────────────────────────────────────────────────
+NEW FILES (Unite 13 Adeota)
+  index.html            Unite 13 Adeota registration form
+                        (proprietor details + school info + candidates)
+  adeota-admin.html     Admin dashboard — view schools, candidates,
+                        charts, and export data to Excel
+
+EXISTING FILES (InterviewPro — retained for compatibility)
+  login.html            Admin sign-in
+  register.html         Admin registration (create admin account)
+  dashboard.html        Original InterviewPro admin dashboard
+  application-form.html Original applicant form
+  payment.html          Monnify payment page
+  style.css             Shared stylesheet
+  app.js                Shared JS utilities
+  firebase-config.js    Firebase initialisation (shared)
+
+===================================================
 STEP 1 — Firebase Console
   Go to: console.firebase.google.com
   Project: modanmic-ai-power-exams
@@ -17,21 +37,32 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Admins — any authenticated user can read/write their own doc
+    // Admin accounts
     match /admins/{adminId} {
       allow read, write: if request.auth != null
                          && request.auth.uid == adminId;
     }
 
-    // Applications — anyone can create (no login needed for applicants)
-    //               any authenticated user (admin) can read all
+    // Unite 13 portal config (fee, Monnify keys)
+    // PUBLIC READ — so index.html can fetch fee without login
+    // WRITE restricted to authenticated admins only
+    match /portal_config/{docId} {
+      allow read:  if true;
+      allow write: if request.auth != null;
+    }
+
+    // Unite 13 Adeota registrations
+    match /adeota_registrations/{regId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Original InterviewPro collections
     match /applications/{appId} {
       allow create: if true;
       allow read:   if request.auth != null;
       allow update: if true;
     }
-
-    // Payments — anyone can create; admins can read
     match /payments/{payId} {
       allow create: if true;
       allow read:   if request.auth != null;
@@ -42,81 +73,98 @@ service cloud.firestore {
 
   D) Click "Publish" to save the rules.
 
-  E) Firestore → Indexes → Add composite index:
-     Collection: applications
-     Fields:     adminId (Ascending), submittedAt (Descending)
+  E) Firestore → Indexes → Add composite index (for admin dashboard):
+     Collection: adeota_registrations
+     Fields:     submittedAt (Descending)
      Click "Create" — takes ~2 minutes to build.
-     (Without this, applications tab will show empty until the
-      index is ready. You'll also see a link in the browser
-      console to auto-create it.)
+     (Without this, the dashboard may show an empty list initially)
 
 ===================================================
 STEP 2 — Deploy
-  Option A (easiest — Netlify):
+  Option A (Netlify — Recommended):
     Go to netlify.com/drop
     Drag and drop this entire folder
-    Done! Your site is live in 30 seconds.
+    Done! Site live in ~30 seconds.
 
   Option B (Firebase Hosting):
     npm install -g firebase-tools
     firebase login
-    firebase init hosting   (set public dir = this folder, SPA = No)
+    firebase init hosting  (public dir = this folder, SPA = No)
     firebase deploy
 
 ===================================================
 STEP 3 — Create your Admin Account
   1. Open your deployed site
-  2. Click "Get Started" or go to /register.html
+  2. Go to /register.html
   3. Fill in your details → Create Account
-  4. You're taken straight to the dashboard.
+  4. You are redirected to the InterviewPro dashboard (login.html)
+  5. To access the Unite 13 Adeota admin panel, navigate to:
+     https://yoursite.com/adeota-admin.html
 
 ===================================================
-STEP 4 — Share Your Form Link
-  Dashboard → Overview → the blue box at the top
-  Click "📋 Copy Link"
-  Share via WhatsApp, email, SMS — any channel.
+STEP 4 — Share the Registration Form
+  Share the index.html URL with school proprietors:
+  https://yoursite.com/index.html
 
-  The link looks like:
-  https://yoursite.com/application-form.html?adminId=YOUR_UID
+  OR copy it from the Settings tab in adeota-admin.html
 
-  Applicants DO NOT need an account.
-  They just open the link and fill in the form.
+  Proprietors do NOT need an account.
+  They open the link, fill in the 4-step form, and submit.
 
 ===================================================
-MONNIFY PAYMENT
-  Currently: isTestMode = true (test mode)
-  When ready to go live:
-    Open payment.html → change isTestMode to false
+ADEOTA ADMIN DASHBOARD (adeota-admin.html)
+  Overview Tab:
+    • Total schools registered
+    • Total candidates
+    • States represented
+    • 7-day registration chart
+    • School type breakdown (pie chart)
+    • Recent registrations table
 
-  Test cards: use Monnify's test card numbers
-  (see app.monnify.com docs)
+  School Registrations Tab:
+    • Full table of all registered schools
+    • Search by school name or proprietor name
+    • Filter by state
+    • Click "View →" to see full school + proprietor details
+      and the complete candidate list for that school
+    • Export to Excel button
+
+  All Candidates Tab:
+    • Flat view of every candidate across all schools
+    • Filter by name, class, or gender
+    • Export to Excel button
+
+  Settings Tab:
+    • Edit portal title and instructions
+    • Set registration deadline
+    • Copy the registration form URL
+
+  Sidebar → "Export All Data":
+    • Downloads a single Excel file with two sheets:
+      Sheet 1 = Schools, Sheet 2 = Candidates
 
 ===================================================
-FILE STRUCTURE
-  index.html            Beautiful landing page
-  login.html            Admin sign in (fixed redirect loop)
-  register.html         Admin registration
-  dashboard.html        Full admin dashboard
-  application-form.html 4-step applicant form (link-accessed)
-  payment.html          Monnify payment + confirmation
-  style.css             Shared stylesheet
-  app.js                Shared utility functions
-  firebase-config.js    Firebase init (shared)
-  SETUP.txt             This file
+REGISTRATION FORM FEATURES (index.html)
+  Step 1 — Proprietor Details:
+    Full name, gender, DOB, NIN, phone (×2), email, address, state
 
-===================================================
-WHY THE REDIRECT WAS HAPPENING
-  The original login.html redirected users immediately
-  if they weren't logged in, but Firebase Auth takes
-  ~300-500ms to resolve the session. The page would
-  briefly redirect to login even for logged-in users.
+  Step 2 — School Information:
+    Name, type, ownership, year est., reg. no., phone, email,
+    full address, enrollment, notes
 
-  FIXED by:
-  1. Showing a loading overlay on dashboard.html until
-     onAuthStateChanged fires (instead of redirecting blind)
-  2. Using window.location.replace() instead of .href
-     (prevents back-button loops)
-  3. dashboard.html auto-creates the admin doc if missing
-     (handles race condition after register)
-  4. Better Firestore rules that don't accidentally block reads
+  Step 3 — Candidates:
+    • Import via Excel (.xlsx / .xls / .csv)
+      Excel columns: Surname | First Name | Other Names |
+                     Gender | Date of Birth | Class | Subject
+    • Download blank template button (auto-generates correct format)
+    • Add manually one-by-one with live table preview
+    • Remove individual candidates with ✕ button
+
+  Step 4 — Review & Submit:
+    • Full summary of all entered data
+    • Declaration checkbox
+    • Saves to Firestore collection: adeota_registrations
+    • Displays unique reference code (e.g. U13-ABC12345)
+    • Confetti celebration on success ✨
+
 ===================================================

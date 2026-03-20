@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — Unite 13 Adeota</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { background:var(--bg); min-height:100vh }
+
+    /* ── Auth loading ── */
+    #auth-loading {
+      position:fixed; inset:0; background:var(--navy); z-index:9999;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1rem
+    }
+    .al-logo { width:60px;height:60px;background:var(--saffron);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;color:var(--navy);font-size:1.3rem }
+    .al-spin { width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:var(--saffron);animation:spinR .8s linear infinite }
+    .al-text { color:rgba(255,255,255,.55);font-size:.9rem }
+    @keyframes spinR { to{transform:rotate(360deg)} }
+
+    /* ── Layout ── */
+    .dash-layout { display:grid; grid-template-columns:240px 1fr; min-height:calc(100vh - 64px) }
+    @media(max-width:800px) { .dash-layout { grid-template-columns:1fr } .dash-sidebar { display:none } }
+
+    /* ── Sidebar ── */
+    .dash-sidebar { background:var(--white); border-right:1px solid var(--line); padding:1.5rem 0 }
+    .sb-nav { display:flex; flex-direction:column; gap:.15rem; padding:0 .75rem }
+    .sb-link { display:flex;align-items:center;gap:.65rem;padding:.65rem .9rem;border-radius:var(--r-sm);color:var(--ink3);font-size:.88rem;font-weight:500;cursor:pointer;transition:all var(--tr) }
+    .sb-link:hover  { background:var(--line2); color:var(--ink) }
+    .sb-link.active { background:var(--navy); color:#fff }
+    .sb-link svg { width:16px;height:16px;flex-shrink:0 }
+    .sb-divider { height:1px; background:var(--line); margin:.9rem .75rem }
+    .sb-section { font-size:.69rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink4);padding:.4rem .9rem }
+
+    /* ── Main ── */
+    .dash-main { padding:2rem; overflow:auto }
+    .tab-panel { display:none }
+    .tab-panel.active { display:block; animation:tabIn .3s ease }
+    @keyframes tabIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    /* ── Page header ── */
+    .pg-hd { display:flex;align-items:center;justify-content:space-between;margin-bottom:1.6rem;flex-wrap:wrap;gap:.8rem }
+    .pg-hd h2 { font-size:1.4rem }
+    .pg-hd p  { color:var(--ink3);font-size:.84rem;margin-top:.1rem }
+
+    /* ── Hero stat row ── */
+    .hero-stat { background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%); border-radius:var(--r-lg); padding:1.8rem; color:#fff; display:flex; align-items:center; gap:2rem; margin-bottom:2rem; flex-wrap:wrap }
+    .hero-stat-main { flex:1 }
+    .hero-stat-main h3 { font-size:1.05rem; margin-bottom:.25rem }
+    .hero-stat-main p  { color:rgba(255,255,255,.5); font-size:.85rem }
+    .hero-stat-nums { display:flex; gap:2.5rem; flex-wrap:wrap }
+    .hsn { text-align:center }
+    .hsn-val { font-family:'Sora',sans-serif; font-size:2.4rem; font-weight:800; color:var(--saffron); line-height:1 }
+    .hsn-lbl { font-size:.74rem; color:rgba(255,255,255,.5); margin-top:.25rem }
+
+    /* ── Stat cards ── */
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.8rem }
+    @media(max-width:900px) { .stat-grid { grid-template-columns:1fr 1fr } }
+    .stat-card { background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:1.3rem;position:relative;overflow:hidden;transition:transform var(--tr),box-shadow var(--tr) }
+    .stat-card::before { content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0 }
+    .stat-card.c-blue::before   { background:var(--blue) }
+    .stat-card.c-green::before  { background:var(--green) }
+    .stat-card.c-amber::before  { background:var(--saffron) }
+    .stat-card.c-purple::before { background:var(--purple) }
+    .stat-card.c-teal::before   { background:var(--teal) }
+    .stat-card:hover { transform:translateY(-2px); box-shadow:var(--sh-md) }
+    .stat-icon { font-size:1.5rem; margin-bottom:.7rem }
+    .stat-num  { font-family:'Sora',sans-serif;font-size:2rem;font-weight:800;line-height:1;margin-bottom:.25rem }
+    .stat-lbl  { font-size:.78rem;color:var(--ink3);font-weight:500 }
+
+    /* ── Charts area ── */
+    .charts-row { display:grid; grid-template-columns:280px 1fr; gap:1.2rem; margin-bottom:1.8rem }
+    @media(max-width:900px) { .charts-row { grid-template-columns:1fr } }
+    .chart-card { background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:1.3rem }
+    .chart-card h4 { font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:1rem }
+
+    /* ── Table ── */
+    .table-wrap { background:var(--white);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;overflow-x:auto }
+    .data-table { width:100%;border-collapse:collapse;min-width:700px }
+    .data-table th { text-align:left;padding:.75rem 1rem;background:var(--line2);border-bottom:1px solid var(--line);font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);white-space:nowrap }
+    .data-table td { padding:.8rem 1rem;border-bottom:1px solid var(--line);font-size:.86rem;vertical-align:middle }
+    .data-table tr:last-child td { border-bottom:none }
+    .data-table tbody tr { transition:background var(--tr) }
+    .data-table tbody tr:hover td { background:var(--bg) }
+    .table-empty { text-align:center;color:var(--ink4);padding:3rem !important }
+
+    /* ── Action btn ── */
+    .action-btn { background:var(--line2);border:1px solid var(--line);padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all var(--tr) }
+    .action-btn:hover { background:var(--white);border-color:var(--ink3) }
+    .action-btn.danger { color:var(--red);border-color:var(--red-lt);background:var(--red-lt) }
+    .action-btn.danger:hover { background:var(--red);color:#fff }
+
+    /* ── Filters ── */
+    .filter-bar { display:flex;gap:.6rem;flex-wrap:wrap;align-items:center }
+    .search-box { display:flex;align-items:center;gap:.5rem;background:var(--white);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:.4rem .8rem }
+    .search-box input { border:none;outline:none;font-size:.84rem;width:200px;background:transparent }
+    .search-box svg { width:14px;height:14px;color:var(--ink4);flex-shrink:0 }
+
+    /* ── Modal ── */
+    .modal-overlay { position:fixed;inset:0;background:rgba(11,17,32,.55);display:flex;align-items:center;justify-content:center;z-index:8000;backdrop-filter:blur(4px);animation:ovIn .2s ease }
+    .modal-overlay.hidden { display:none }
+    @keyframes ovIn { from{opacity:0} to{opacity:1} }
+    .modal-box { background:var(--white);border-radius:var(--r-lg);width:100%;max-width:700px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(11,17,32,.22);margin:1rem;animation:mboxIn .3s cubic-bezier(.34,1.3,.64,1) }
+    .modal-box.wide { max-width:880px }
+    @keyframes mboxIn { from{opacity:0;transform:scale(.93) translateY(10px)} to{opacity:1;transform:none} }
+    .modal-head { display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--white);z-index:1 }
+    .modal-head h3 { font-size:1.1rem }
+    .modal-close { width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--line2);display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all var(--tr);cursor:pointer }
+    .modal-close:hover { background:var(--line);color:var(--ink) }
+    .modal-body { padding:1.5rem }
+
+    /* ── Detail grid (modal) ── */
+    .ad-grid { display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.2rem }
+    .ad-item .ad-l { font-size:.74rem;color:var(--ink4);margin-bottom:2px }
+    .ad-item .ad-v { font-weight:600;font-size:.9rem;word-break:break-word }
+
+    /* ── Candidate mini-table (modal) ── */
+    .cand-mini { width:100%;border-collapse:collapse;font-size:.83rem }
+    .cand-mini th { text-align:left;padding:.5rem .7rem;background:var(--line2);border-bottom:1px solid var(--line);font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--ink3) }
+    .cand-mini td { padding:.55rem .7rem;border-bottom:1px solid var(--line) }
+    .cand-mini tr:last-child td { border-bottom:none }
+    .cand-mini tbody tr:hover td { background:var(--bg) }
+
+    /* ── Delete button styles ── */
+    .btn-delete {
+      display:inline-flex; align-items:center; gap:.35rem;
+      background:var(--red-lt); color:var(--red);
+      border:1px solid rgba(239,68,68,.25);
+      padding:4px 10px; border-radius:6px;
+      font-size:.78rem; font-weight:600; cursor:pointer;
+      transition:all var(--tr);
+    }
+    .btn-delete:hover { background:var(--red); color:#fff; border-color:var(--red) }
+    .btn-del-cand {
+      width:26px; height:26px; border-radius:5px;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--red-lt); color:var(--red);
+      border:none; cursor:pointer; font-size:.8rem;
+      transition:all var(--tr); flex-shrink:0;
+    }
+    .btn-del-cand:hover { background:var(--red); color:#fff }
+
+    /* ── Confirm Delete Modal ── */
+    .confirm-overlay {
+      position:fixed; inset:0; background:rgba(11,17,32,.6);
+      display:flex; align-items:center; justify-content:center;
+      z-index:9000; backdrop-filter:blur(4px);
+      animation:ovIn .2s ease;
+    }
+    .confirm-overlay.hidden { display:none }
+    .confirm-box {
+      background:var(--white); border-radius:var(--r-lg);
+      width:100%; max-width:420px; margin:1rem;
+      box-shadow:0 24px 80px rgba(11,17,32,.25);
+      animation:mboxIn .3s cubic-bezier(.34,1.3,.64,1);
+      overflow:hidden;
+    }
+    .confirm-icon { font-size:2.8rem; margin-bottom:.75rem }
+    .confirm-head { padding:1.8rem 1.8rem 0; text-align:center }
+    .confirm-head h3 { font-size:1.15rem; margin-bottom:.4rem }
+    .confirm-head p  { font-size:.86rem; color:var(--ink3); line-height:1.6 }
+    .confirm-detail  { background:var(--red-lt); border:1px solid rgba(239,68,68,.15); border-radius:var(--r-sm); padding:.7rem 1rem; margin:.9rem 0 0; font-size:.82rem; color:var(--red); font-weight:600; word-break:break-word }
+    .confirm-foot {
+      display:flex; gap:.6rem; padding:1.2rem 1.8rem 1.8rem;
+      justify-content:flex-end;
+    }
+
+    /* ── Candidate list view ── */
+    .cand-school-badge { display:inline-flex;align-items:center;gap:.3rem;background:var(--navy);color:#fff;padding:2px 9px;border-radius:20px;font-size:.73rem;font-weight:600 }
+
+    /* ── Settings ── */
+    .settings-grid { display:grid;grid-template-columns:1fr 1fr;gap:1.5rem }
+    @media(max-width:700px) { .settings-grid { grid-template-columns:1fr } }
+
+    /* ── Export bar ── */
+    .export-bar { display:flex;gap:.5rem;flex-wrap:wrap }
+  </style>
+</head>
+<body>
+
+<!-- Auth loading -->
+<div id="auth-loading">
+  <div class="al-logo">U13</div>
+  <div class="al-spin"></div>
+  <div class="al-text">Loading dashboard…</div>
+</div>
+
+<div id="toast-wrap"></div>
+
+<!-- NAV -->
+<nav class="dash-nav" id="main-nav" style="display:none">
+  <div class="dash-nav-brand">
+    <div class="nav-logo">U13</div>
+    <span class="brand-name">Unite 13 Adeota</span>
+    <span class="brand-tag">Admin</span>
+  </div>
+  <div class="dash-nav-links">
+    <div class="nav-link active" onclick="switchTab('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview
+    </div>
+    <div class="nav-link" onclick="switchTab('schools')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Schools
+    </div>
+    <div class="nav-link" onclick="switchTab('candidates')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Candidates
+    </div>
+    <div class="nav-link" onclick="switchTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Settings
+    </div>
+  </div>
+  <div class="nav-right">
+    <a href="index.html" target="_blank" style="display:flex;align-items:center;gap:.4rem;padding:.4rem .85rem;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.75);font-size:.8rem;font-weight:600;text-decoration:none;transition:all var(--tr)" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Registration Form
+    </a>
+    <div style="font-size:.84rem;color:rgba(255,255,255,.6)" id="nav-admin-name"></div>
+    <div class="nav-avatar" id="nav-avatar">A</div>
+    <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.25)" onclick="doLogout()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="dash-layout" id="dash-layout" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <div class="sb-link active" onclick="switchTab('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview
+      </div>
+      <div class="sb-link" onclick="switchTab('schools')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>School Registrations
+      </div>
+      <div class="sb-link" onclick="switchTab('candidates')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>All Candidates
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-section">Admin</div>
+      <div class="sb-link" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Settings
+      </div>
+      <div class="sb-link" onclick="exportAllData()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export All Data
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="dash-main">
+
+    <!-- ═══════ TAB: OVERVIEW ═══════ -->
+    <div id="tab-overview" class="tab-panel active">
+
+      <div class="hero-stat">
+        <div class="hero-stat-main">
+          <h3>🏫 Unite 13 Adeota — Registration Overview</h3>
+          <p>2025/2026 Academic Session · Real-time submission data</p>
+        </div>
+        <div class="hero-stat-nums">
+          <div class="hsn"><div class="hsn-val" id="ov-schools">—</div><div class="hsn-lbl">Schools Registered</div></div>
+          <div class="hsn"><div class="hsn-val" id="ov-candidates">—</div><div class="hsn-lbl">Total Candidates</div></div>
+          <div class="hsn"><div class="hsn-val" id="ov-states">—</div><div class="hsn-lbl">States Represented</div></div>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card c-blue"><div class="stat-icon">🏫</div><div class="stat-num" id="s-schools">—</div><div class="stat-lbl">Schools Registered</div></div>
+        <div class="stat-card c-teal"><div class="stat-icon">✏️</div><div class="stat-num" id="s-cands">—</div><div class="stat-lbl">Total Candidates</div></div>
+        <div class="stat-card c-amber"><div class="stat-icon">📅</div><div class="stat-num" id="s-today">—</div><div class="stat-lbl">Registered Today</div></div>
+        <div class="stat-card c-purple"><div class="stat-icon">🗺️</div><div class="stat-num" id="s-states">—</div><div class="stat-lbl">States</div></div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <h4>School Type Breakdown</h4>
+          <canvas id="chart-types" width="260" height="240"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Registrations — Last 7 Days</h4>
+          <canvas id="chart-timeline" width="500" height="240"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent registrations table -->
+      <div class="card" style="background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:0;overflow:hidden">
+        <div style="padding:1rem 1.3rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
+          <h4 style="font-size:.84rem;font-weight:700">Recent Registrations</h4>
+          <button class="action-btn" onclick="switchTab('schools')">View All →</button>
+        </div>
+        <table class="data-table" style="min-width:500px">
+          <thead><tr><th>School</th><th>Proprietor</th><th>State</th><th>Candidates</th><th>Submitted</th></tr></thead>
+          <tbody id="recent-tbody"><tr><td colspan="5" class="table-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: SCHOOLS ═══════ -->
+    <div id="tab-schools" class="tab-panel">
+      <div class="pg-hd">
+        <div>
+          <h2>School Registrations</h2>
+          <p id="schools-count">Loading…</p>
+        </div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <div class="filter-bar">
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="school-search" placeholder="Search school, proprietor…" oninput="filterSchools()"/>
+            </div>
+            <select id="school-state-filter" class="form-select" style="width:150px;padding:.4rem .8rem" onchange="filterSchools()">
+              <option value="">All States</option>
+            </select>
+            <div class="export-bar">
+              <button class="btn btn-outline btn-sm" onclick="exportSchools()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>School Name</th>
+              <th>Type</th>
+              <th>Proprietor</th>
+              <th>Phone</th>
+              <th>State</th>
+              <th>Candidates</th>
+              <th>Submitted</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="schools-tbody"><tr><td colspan="9" class="table-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: CANDIDATES ═══════ -->
+    <div id="tab-candidates" class="tab-panel">
+      <div class="pg-hd">
+        <div>
+          <h2>All Candidates</h2>
+          <p id="cands-count">Loading…</p>
+        </div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="cand-search" placeholder="Search by name, school…" oninput="filterCandidates()"/>
+          </div>
+          <select id="cand-class-filter" class="form-select" style="width:140px;padding:.4rem .8rem" onchange="filterCandidates()">
+            <option value="">All Classes</option>
+            <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+            <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+            <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+            <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+          </select>
+          <select id="cand-gender-filter" class="form-select" style="width:120px;padding:.4rem .8rem" onchange="filterCandidates()">
+            <option value="">All Genders</option>
+            <option>Male</option><option>Female</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="exportCandidates()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Excel
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Surname</th>
+              <th>First Name</th>
+              <th>Gender</th>
+              <th>DOB</th>
+              <th>Class</th>
+              <th>Subject</th>
+              <th>School</th>
+              <th>State</th>
+            </tr>
+          </thead>
+          <tbody id="cands-tbody"><tr><td colspan="9" class="table-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: SETTINGS ═══════ -->
+    <div id="tab-settings" class="tab-panel">
+      <div class="pg-hd">
+        <div><h2>Admin Settings</h2><p>Manage portal configuration</p></div>
+        <button class="btn btn-primary" onclick="saveSettings()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Settings
+        </button>
+      </div>
+      <div class="settings-grid">
+        <div class="card">
+          <h3 style="font-size:1rem;margin-bottom:1.2rem">Portal Details</h3>
+          <div class="form-group"><label class="form-label">Portal / Session Title</label><input type="text" id="set-title" class="form-input" placeholder="e.g. Unite 13 Adeota 2025/2026"/></div>
+          <div class="form-group"><label class="form-label">Instructions for Proprietors</label><textarea id="set-desc" class="form-textarea" rows="3" placeholder="Instructions shown on the registration form…"></textarea></div>
+          <div class="form-group"><label class="form-label">Registration Deadline</label><input type="date" id="set-deadline" class="form-input"/></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem;margin-bottom:1.2rem">Admin Account</h3>
+          <div class="form-group"><label class="form-label">Admin Name</label><input type="text" id="set-name" class="form-input" placeholder="Your name"/></div>
+          <div class="form-group"><label class="form-label">Admin Email</label><input type="email" id="set-email" class="form-input" placeholder="admin@unite13.edu.ng" disabled/></div>
+          <div class="form-group"><label class="form-label">Organisation / Unit</label><input type="text" id="set-org" class="form-input" placeholder="e.g. Unit 13 Education Board"/></div>
+          <div class="divider"></div>
+          <div class="form-group"><label class="form-label">Registration Form URL</label>
+            <div style="display:flex;gap:.5rem">
+              <input type="text" id="set-form-url" class="form-input" readonly style="font-size:.82rem;color:var(--ink3)"/>
+              <button class="btn btn-outline btn-sm" onclick="copyFormUrl()">Copy</button>
+            </div>
+            <p class="field-hint" style="margin-top:.3rem">Share this with school proprietors</p>
+          </div>
+        </div>
+
+        <!-- Payment Settings -->
+        <div class="card" style="grid-column:1/-1">
+          <h3 style="font-size:1rem;margin-bottom:.3rem">💳 Payment &amp; Monnify Configuration</h3>
+          <p style="font-size:.82rem;color:var(--ink3);margin-bottom:1.2rem">These values are saved to Firestore and read by the registration form. Changes take effect immediately on next page load.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+            <div class="form-group">
+              <label class="form-label">Registration Fee (₦) <span style="color:var(--red)">*</span></label>
+              <div style="position:relative">
+                <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--ink3);font-size:.9rem">₦</span>
+                <input type="number" id="set-fee" class="form-input" placeholder="5000" min="100" style="padding-left:2rem"/>
+              </div>
+              <p class="field-hint">Amount each school pays to register</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Monnify API Key</label>
+              <input type="text" id="set-monnify-key" class="form-input" placeholder="MK_TEST_…" style="font-family:monospace;font-size:.82rem"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Monnify Contract Code</label>
+              <input type="text" id="set-monnify-contract" class="form-input" placeholder="1210042254" style="font-family:monospace;font-size:.82rem"/>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="form-group">
+              <label class="form-label">Monnify Secret Key</label>
+              <input type="password" id="set-monnify-secret" class="form-input" placeholder="Secret key (stored securely)" style="font-family:monospace;font-size:.82rem"/>
+              <p class="field-hint">Used for server-side verification only — not exposed to browser</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Mode</label>
+              <select id="set-monnify-live" class="form-select">
+                <option value="false">🧪 Test Mode (sandbox)</option>
+                <option value="true">🚀 Live Mode (real payments)</option>
+              </select>
+              <p class="field-hint">Switch to Live only after Monnify merchant approval</p>
+            </div>
+          </div>
+          <div style="background:var(--saf-lt);border:1px solid rgba(245,158,11,.3);border-radius:var(--r-sm);padding:.8rem 1rem;font-size:.8rem;color:var(--saf2);display:flex;align-items:flex-start;gap:.5rem">
+            <span>⚠️</span>
+            <span>Test mode uses Monnify sandbox — no real money is charged. Use Monnify test card numbers from <strong>app.monnify.com/documentation</strong>. Switch to Live Mode only when you are ready to accept real payments.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══ MODAL: Confirm Delete ═══ -->
+<div id="modal-confirm" class="confirm-overlay hidden">
+  <div class="confirm-box">
+    <div class="confirm-head">
+      <div class="confirm-icon">🗑️</div>
+      <h3 id="confirm-title">Confirm Deletion</h3>
+      <p id="confirm-message">This action cannot be undone.</p>
+      <div class="confirm-detail" id="confirm-detail"></div>
+    </div>
+    <div class="confirm-foot">
+      <button class="btn btn-outline btn-sm" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="confirm-ok-btn" onclick="executeConfirm()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: School Detail ═══ -->
+<div id="modal-school" class="modal-overlay hidden" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal-box wide">
+    <div class="modal-head">
+      <h3>School Registration Detail</h3>
+      <button class="modal-close" onclick="document.getElementById('modal-school').classList.add('hidden')">✕</button>
+    </div>
+    <div id="modal-school-body" class="modal-body"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyBbAu27RCUnU2Bd7dUhjpHCQpaV6i_UHDg",
+  authDomain:        "modanmic-ai-power-exams.firebaseapp.com",
+  projectId:         "modanmic-ai-power-exams",
+  storageBucket:     "modanmic-ai-power-exams.firebasestorage.app",
+  messagingSenderId: "592742880638",
+  appId:             "1:592742880638:web:ff788ba10a3a6e889e4f2f"
+};
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── State ─────────────────────────────────────────────────────────
+let allRegistrations = [];   // all docs from adeota_registrations
+let allCandidateFlat = [];   // flattened [{...candidate, schoolName, schoolState, submittedAt}]
+let adminData        = {};
+let currentUser      = null;
+
+// ── Auth ──────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  const loader = document.getElementById('auth-loading');
+  if (!user) { window.location.replace('login.html'); return; }
+  currentUser = user;
+
+  // Load or create admin doc
+  try {
+    let snap = await getDoc(doc(db, 'admins', user.uid));
+    if (!snap.exists()) {
+      const d = { firstName: user.email.split('@')[0], email: user.email, role: 'admin', createdAt: Timestamp.now(), formSettings: { title: 'Unite 13 Adeota Registration', description: '' } };
+      await setDoc(doc(db, 'admins', user.uid), d);
+      adminData = d;
+    } else {
+      adminData = snap.data();
+    }
+  } catch(e) {
+    adminData = { firstName: user.email.split('@')[0], email: user.email };
+  }
+
+  // Show UI
+  loader.style.display = 'none';
+  document.getElementById('main-nav').style.display = 'flex';
+  document.getElementById('dash-layout').style.display = 'grid';
+  const name = adminData.firstName || user.email;
+  document.getElementById('nav-admin-name').textContent = name;
+  document.getElementById('nav-avatar').textContent = name[0].toUpperCase();
+
+  // Populate settings fields
+  document.getElementById('set-title').value = adminData.formSettings?.title || 'Unite 13 Adeota Registration 2025/2026';
+  document.getElementById('set-desc').value  = adminData.formSettings?.description || '';
+  document.getElementById('set-deadline').value = adminData.formSettings?.deadline || '';
+  document.getElementById('set-name').value  = adminData.firstName || '';
+  document.getElementById('set-email').value = adminData.email || user.email;
+  document.getElementById('set-org').value   = adminData.organisation || '';
+  document.getElementById('set-form-url').value = window.location.origin + '/index.html';
+
+  // Load payment/Monnify config from portal_config collection
+  try {
+    const cfgSnap = await getDoc(doc(db, 'portal_config', 'unite13'));
+    if (cfgSnap.exists()) {
+      const cfg = cfgSnap.data();
+      document.getElementById('set-fee').value              = cfg.applicationFee || 5000;
+      document.getElementById('set-monnify-key').value      = cfg.monnifyApiKey  || 'MK_TEST_NDS2MBQEUJ';
+      document.getElementById('set-monnify-contract').value = cfg.monnifyContractCode || '1210042254';
+      document.getElementById('set-monnify-secret').value   = cfg.monnifySecretKey || '';
+      document.getElementById('set-monnify-live').value     = String(cfg.isLive || false);
+    } else {
+      // No config doc yet — pre-fill with defaults from env
+      document.getElementById('set-fee').value              = 5000;
+      document.getElementById('set-monnify-key').value      = 'MK_TEST_NDS2MBQEUJ';
+      document.getElementById('set-monnify-contract').value = '1210042254';
+      document.getElementById('set-monnify-live').value     = 'false';
+    }
+  } catch(e) {
+    console.warn('Could not load portal_config:', e.message);
+  }
+
+  loadData();
+});
+
+window.doLogout = async () => { await signOut(auth); window.location.replace('login.html'); };
+
+// ── Load Data ─────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const snap = await getDocs(query(collection(db, 'adeota_registrations'), orderBy('submittedAt','desc')));
+    allRegistrations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) {
+    // Possibly needs index or empty
+    allRegistrations = [];
+    toast('info','Data loaded','No registrations found yet, or an index is pending.');
+  }
+
+  // Flatten candidates
+  allCandidateFlat = [];
+  allRegistrations.forEach(reg => {
+    (reg.candidates || []).forEach(c => {
+      allCandidateFlat.push({
+        ...c,
+        schoolName:  reg.school?.name  || '—',
+        schoolState: reg.school?.state || reg.proprietor?.state || '—',
+        regId:       reg.id,
+        submittedAt: reg.submittedAt,
+      });
+    });
+  });
+
+  renderOverview();
+  renderSchoolsTable(allRegistrations);
+  renderCandidatesTable(allCandidateFlat);
+  populateStateFilter();
+}
+
+// ── Overview ──────────────────────────────────────────────────────
+function renderOverview() {
+  const total     = allRegistrations.length;
+  const totalCand = allCandidateFlat.length;
+  const states    = new Set(allRegistrations.map(r => r.school?.state || r.proprietor?.state).filter(Boolean)).size;
+  const today     = allRegistrations.filter(r => r.submittedAt?.toDate?.()?.toDateString() === new Date().toDateString()).length;
+
+  // Hero
+  animCount('ov-schools',    total);
+  animCount('ov-candidates', totalCand);
+  animCount('ov-states',     states);
+  animCount('s-schools',     total);
+  animCount('s-cands',       totalCand);
+  animCount('s-today',       today);
+  animCount('s-states',      states);
+
+  // Recent table (last 5)
+  const recent = allRegistrations.slice(0, 5);
+  const tbody  = document.getElementById('recent-tbody');
+  tbody.innerHTML = recent.length ? recent.map(r => `
+    <tr>
+      <td><strong>${esc(r.school?.name || '—')}</strong></td>
+      <td>${esc(r.proprietor?.firstName || '')} ${esc(r.proprietor?.lastName || '')}</td>
+      <td>${esc(r.school?.state || r.proprietor?.state || '—')}</td>
+      <td><span style="background:var(--teal-lt);color:var(--teal);padding:2px 8px;border-radius:20px;font-size:.75rem;font-weight:700">${(r.candidates||[]).length}</span></td>
+      <td style="color:var(--ink3);font-size:.82rem">${fmtDate(r.submittedAt)}</td>
+    </tr>`).join('')
+  : '<tr><td colspan="5" class="table-empty">No registrations yet.</td></tr>';
+
+  renderChartTypes();
+  renderChartTimeline();
+}
+
+// ── Schools Table ─────────────────────────────────────────────────
+function renderSchoolsTable(regs) {
+  const tbody = document.getElementById('schools-tbody');
+  document.getElementById('schools-count').textContent = regs.length + ' school' + (regs.length !== 1 ? 's' : '') + ' registered';
+  if (!regs.length) { tbody.innerHTML = '<tr><td colspan="9" class="table-empty">No schools registered yet.</td></tr>'; return; }
+  tbody.innerHTML = regs.map((r, i) => `
+    <tr>
+      <td style="color:var(--ink4);font-size:.78rem">${i+1}</td>
+      <td><strong>${esc(r.school?.name || '—')}</strong><div style="font-size:.75rem;color:var(--ink3)">${esc(r.school?.type || '')}</div></td>
+      <td><span style="font-size:.78rem;color:var(--ink3)">${esc(r.school?.type || '—')}</span></td>
+      <td>${esc(r.proprietor?.firstName||'')} ${esc(r.proprietor?.lastName||'')}</td>
+      <td style="font-size:.82rem">${esc(r.proprietor?.phone || r.school?.phone || '—')}</td>
+      <td><span style="background:var(--blue-lt);color:var(--blue);padding:2px 8px;border-radius:20px;font-size:.74rem;font-weight:600">${esc(r.school?.state || r.proprietor?.state || '—')}</span></td>
+      <td><span style="background:var(--teal-lt);color:var(--teal);padding:2px 8px;border-radius:20px;font-size:.74rem;font-weight:700">${(r.candidates||[]).length}</span></td>
+      <td style="font-size:.78rem;color:var(--ink3)">${fmtDate(r.submittedAt)}</td>
+      <td style="display:flex;gap:.4rem;align-items:center">
+        <button class="action-btn" onclick="viewSchool('${r.id}')">View →</button>
+        <button class="btn-delete" onclick="confirmDeleteRegistration('${r.id}','${esc(r.school?.name||'This registration')}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Delete
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+window.filterSchools = () => {
+  const q  = document.getElementById('school-search').value.toLowerCase();
+  const st = document.getElementById('school-state-filter').value;
+  const f  = allRegistrations.filter(r => {
+    const s = `${r.school?.name} ${r.proprietor?.firstName} ${r.proprietor?.lastName} ${r.school?.state}`.toLowerCase();
+    const stateMatch = !st || (r.school?.state === st || r.proprietor?.state === st);
+    return (!q || s.includes(q)) && stateMatch;
+  });
+  renderSchoolsTable(f);
+};
+
+function populateStateFilter() {
+  const states = [...new Set(allRegistrations.map(r => r.school?.state || r.proprietor?.state).filter(Boolean))].sort();
+  const sel = document.getElementById('school-state-filter');
+  states.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+}
+
+// ── View School Modal ─────────────────────────────────────────────
+window.viewSchool = (id) => {
+  const r = allRegistrations.find(x => x.id === id);
+  if (!r) return;
+  const cands = r.candidates || [];
+
+  // Build candidate rows as a plain string — avoids nested backtick issues
+  let candRowsHtml = '';
+  cands.forEach((c, i) => {
+    candRowsHtml += `
+      <tr id="cand-row-${id}-${i}">
+        <td style="color:var(--ink4);font-size:.75rem">${i + 1}</td>
+        <td><strong>${esc(c.surname)}</strong></td>
+        <td>${esc(c.firstname)}</td>
+        <td style="color:var(--ink3)">${esc(c.othername || '—')}</td>
+        <td>${esc(c.gender || '—')}</td>
+        <td style="font-size:.8rem;color:var(--ink3)">${esc(c.dob || '—')}</td>
+        <td><span style="background:var(--blue-lt);color:var(--blue);padding:1px 7px;border-radius:20px;font-size:.73rem;font-weight:600">${esc(c.class || '—')}</span></td>
+        <td style="font-size:.82rem">${esc(c.subject || '—')}</td>
+        <td>
+          <button class="btn-del-cand" title="Remove this candidate"
+            onclick="confirmDeleteCandidate('` + id + `', ` + i + `, '${esc(c.surname)}, ${esc(c.firstname)}')" >✕</button>
+        </td>
+      </tr>`;
+  });
+
+  // Build the candidates section — plain string, no nested template literals
+  const candsHtml = cands.length
+    ? '<div style="overflow-x:auto"><table class="cand-mini">' +
+        '<thead><tr><th>#</th><th>Surname</th><th>First Name</th><th>Other</th>' +
+        '<th>Gender</th><th>DOB</th><th>Class</th><th>Subject</th><th></th></tr></thead>' +
+        '<tbody>' + candRowsHtml + '</tbody>' +
+      '</table></div>'
+    : '<p style="color:var(--ink3);font-size:.86rem">No candidates listed.</p>';
+
+  const payBadgeBg    = r.paymentStatus === 'paid' ? 'var(--green-lt)' : 'var(--saf-lt)';
+  const payBadgeColor = r.paymentStatus === 'paid' ? '#15803d' : 'var(--saf2)';
+  const payLabel      = r.paymentStatus === 'paid' ? '&#x2705; Paid' : '&#x23F3; Pending';
+  const schoolName    = esc(r.school?.name || 'This registration');
+
+  document.getElementById('modal-school-body').innerHTML =
+    '<div style="margin-bottom:1.4rem">' +
+      '<div class="section-title">&#x1F3EB; School Information</div>' +
+      '<div class="ad-grid">' +
+        '<div class="ad-item" style="grid-column:1/-1"><div class="ad-l">School Name</div><div class="ad-v">' + esc(r.school?.name || '—') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Type</div><div class="ad-v">' + esc(r.school?.type || '—') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Ownership</div><div class="ad-v">' + esc(r.school?.ownership || '—') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Phone</div><div class="ad-v">' + esc(r.school?.phone || '—') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Email</div><div class="ad-v">' + esc(r.school?.email || '—') + '</div></div>' +
+        '<div class="ad-item" style="grid-column:1/-1"><div class="ad-l">Address</div><div class="ad-v">' + esc(r.school?.address || '—') + ', ' + esc(r.school?.city || '') + ', ' + esc(r.school?.state || '') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Year Established</div><div class="ad-v">' + esc(r.school?.yearEst || '—') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Reg. Number</div><div class="ad-v">' + esc(r.school?.regNo || '—') + '</div></div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-bottom:1.4rem">' +
+      '<div class="section-title">&#x1F464; Proprietor Details</div>' +
+      '<div class="ad-grid">' +
+        '<div class="ad-item"><div class="ad-l">Full Name</div><div class="ad-v">' + esc(r.proprietor?.firstName || '') + ' ' + esc(r.proprietor?.middleName || '') + ' ' + esc(r.proprietor?.lastName || '') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Gender</div><div class="ad-v">' + esc(r.proprietor?.gender || '—') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Phone</div><div class="ad-v">' + esc(r.proprietor?.phone || '—') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Email</div><div class="ad-v">' + esc(r.proprietor?.email || '—') + '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Payment</div><div class="ad-v">' +
+          '<span style="background:' + payBadgeBg + ';color:' + payBadgeColor + ';padding:2px 8px;border-radius:20px;font-size:.78rem;font-weight:700">' + payLabel + '</span>' +
+        '</div></div>' +
+        '<div class="ad-item"><div class="ad-l">Submitted</div><div class="ad-v">' + fmtDate(r.submittedAt) + '</div></div>' +
+        '<div class="ad-item" style="grid-column:1/-1"><div class="ad-l">Residential Address</div><div class="ad-v">' + esc(r.proprietor?.address || '—') + ', ' + esc(r.proprietor?.city || '') + ', ' + esc(r.proprietor?.state || '') + '</div></div>' +
+      '</div>' +
+    '</div>' +
+    '<div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem">' +
+        '<div class="section-title" style="margin-bottom:0">&#x270F;&#xFE0F; Candidates (' + cands.length + ')</div>' +
+        '<button class="btn-delete" onclick="confirmDeleteRegistration(\'' + id + '\',\'' + schoolName + '\')">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>' +
+          ' Delete Entire Registration' +
+        '</button>' +
+      '</div>' +
+      candsHtml +
+    '</div>';
+
+  document.getElementById('modal-school').classList.remove('hidden');
+};
+// ── Confirm modal state ───────────────────────────────────────────
+let _confirmCallback = null;
+
+function showConfirm(title, message, detail, onConfirm) {
+  document.getElementById('confirm-title').textContent   = title;
+  document.getElementById('confirm-message').textContent = message;
+  document.getElementById('confirm-detail').textContent  = detail;
+  _confirmCallback = onConfirm;
+  document.getElementById('modal-confirm').classList.remove('hidden');
+}
+
+window.closeConfirm = () => {
+  document.getElementById('modal-confirm').classList.add('hidden');
+  _confirmCallback = null;
+};
+
+window.executeConfirm = async () => {
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin" style="width:14px;height:14px;border-width:2px"></div> Deleting…';
+  try {
+    if (_confirmCallback) await _confirmCallback();
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete`;
+    window.closeConfirm();
+  }
+};
+
+// ── Delete entire registration ────────────────────────────────────
+window.confirmDeleteRegistration = (id, schoolName) => {
+  showConfirm(
+    'Delete Registration',
+    'This will permanently delete the school registration, all candidate data, and cannot be undone.',
+    schoolName,
+    async () => {
+      await deleteDoc(doc(db, 'adeota_registrations', id));
+      // Remove from local state
+      allRegistrations = allRegistrations.filter(r => r.id !== id);
+      allCandidateFlat = allCandidateFlat.filter(c => c.regId !== id);
+      // Close school modal if open
+      document.getElementById('modal-school').classList.add('hidden');
+      // Re-render
+      renderSchoolsTable(allRegistrations);
+      renderCandidatesTable(allCandidateFlat);
+      renderOverview();
+      toast('success', 'Registration deleted', schoolName + ' has been removed.');
+    }
+  );
+};
+
+// ── Delete a single candidate from a registration ─────────────────
+window.confirmDeleteCandidate = (regId, candIndex, candName) => {
+  showConfirm(
+    'Remove Candidate',
+    'This candidate will be removed from the school registration. The registration itself will remain.',
+    candName,
+    async () => {
+      const reg = allRegistrations.find(r => r.id === regId);
+      if (!reg) return;
+      const updatedCandidates = [...(reg.candidates || [])];
+      updatedCandidates.splice(candIndex, 1);
+      await updateDoc(doc(db, 'adeota_registrations', regId), {
+        candidates:     updatedCandidates,
+        candidateCount: updatedCandidates.length,
+      });
+      // Update local state
+      reg.candidates     = updatedCandidates;
+      reg.candidateCount = updatedCandidates.length;
+      allCandidateFlat   = allCandidateFlat.filter(
+        c => !(c.regId === regId && c.surname === candName.split(',')[0].trim())
+      );
+      // Re-open the modal with refreshed data
+      document.getElementById('modal-school').classList.add('hidden');
+      renderCandidatesTable(allCandidateFlat);
+      renderOverview();
+      toast('success', 'Candidate removed', candName + ' has been removed from the registration.');
+      // Reopen the school modal with updated data
+      setTimeout(() => viewSchool(regId), 200);
+    }
+  );
+};
+function renderCandidatesTable(cands) {
+  const tbody = document.getElementById('cands-tbody');
+  document.getElementById('cands-count').textContent = cands.length + ' candidate' + (cands.length !== 1 ? 's' : '');
+  if (!cands.length) { tbody.innerHTML = '<tr><td colspan="9" class="table-empty">No candidates yet.</td></tr>'; return; }
+  tbody.innerHTML = cands.map((c, i) => `
+    <tr>
+      <td style="color:var(--ink4);font-size:.75rem">${i+1}</td>
+      <td><strong>${esc(c.surname||'—')}</strong></td>
+      <td>${esc(c.firstname||'—')}</td>
+      <td>${esc(c.gender||'—')}</td>
+      <td style="font-size:.8rem;color:var(--ink3)">${esc(c.dob||'—')}</td>
+      <td><span style="background:var(--blue-lt);color:var(--blue);padding:2px 7px;border-radius:20px;font-size:.73rem;font-weight:600">${esc(c.class||'—')}</span></td>
+      <td style="font-size:.82rem">${esc(c.subject||'—')}</td>
+      <td><div class="cand-school-badge">${esc(c.schoolName||'—')}</div></td>
+      <td style="font-size:.8rem;color:var(--ink3)">${esc(c.schoolState||'—')}</td>
+    </tr>`).join('');
+}
+
+window.filterCandidates = () => {
+  const q  = document.getElementById('cand-search').value.toLowerCase();
+  const cl = document.getElementById('cand-class-filter').value;
+  const gn = document.getElementById('cand-gender-filter').value;
+  const f  = allCandidateFlat.filter(c => {
+    const s = `${c.surname} ${c.firstname} ${c.schoolName}`.toLowerCase();
+    return (!q || s.includes(q)) && (!cl || c.class === cl) && (!gn || c.gender === gn);
+  });
+  renderCandidatesTable(f);
+};
+
+// ── Charts ────────────────────────────────────────────────────────
+function renderChartTypes() {
+  const canvas = document.getElementById('chart-types');
+  const ctx    = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 260, 240);
+  const counts = {};
+  allRegistrations.forEach(r => { const t = r.school?.type || 'Unknown'; counts[t] = (counts[t]||0) + 1; });
+  const labels = Object.keys(counts), values = Object.values(counts);
+  if (!values.length) { ctx.fillStyle='#94a3b8'; ctx.font='13px DM Sans'; ctx.textAlign='center'; ctx.fillText('No data yet', 130, 110); return; }
+  const palette = ['#0b1120','#14b8a6','#f59e0b','#3b82f6','#a855f7','#ef4444','#22c55e'];
+  const total = values.reduce((a,b)=>a+b,0);
+  let ang = -Math.PI/2;
+  values.forEach((v,i) => { const sl=(v/total)*2*Math.PI; ctx.beginPath(); ctx.moveTo(130,92); ctx.arc(130,92,70,ang,ang+sl); ctx.closePath(); ctx.fillStyle=palette[i%palette.length]; ctx.fill(); ang+=sl; });
+  ctx.beginPath(); ctx.arc(130,92,70*.42,0,2*Math.PI); ctx.fillStyle='#fff'; ctx.fill();
+  ctx.fillStyle='#0f172a'; ctx.font='bold 15px Sora'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(total, 130, 92);
+  ctx.fillStyle='#94a3b8'; ctx.font='11px DM Sans'; ctx.fillText('total', 130, 107); ctx.textBaseline='alphabetic';
+  labels.forEach((l,i) => { const y=176+i*20; if(y>235) return; ctx.fillStyle=palette[i%palette.length]; ctx.fillRect(14,y,10,10); ctx.fillStyle='#475569'; ctx.font='10px DM Sans'; ctx.textAlign='left'; ctx.fillText(`${l.length>18?l.slice(0,18)+'…':l} (${counts[l]})`,30,y+10); });
+}
+
+function renderChartTimeline() {
+  const canvas = document.getElementById('chart-timeline');
+  const ctx    = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 500, 240);
+  const days=[], lbls=[], now=new Date();
+  for (let i=6;i>=0;i--) { const d=new Date(now); d.setDate(d.getDate()-i); days.push(d.toDateString()); lbls.push(d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})); }
+  const cnts = days.map(d => allRegistrations.filter(r => r.submittedAt?.toDate?.()?.toDateString()===d).length);
+  const mx=Math.max(...cnts,1), W=500, H=240, pad={t:20,b:44,l:32,r:12};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b, col=cW/7, bW=col*.6;
+  [.25,.5,.75,1].forEach(p => { const y=pad.t+cH*(1-p); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#94a3b8'; ctx.font='10px DM Sans'; ctx.textAlign='right'; ctx.fillText(Math.round(mx*p),pad.l-4,y+4); });
+  cnts.forEach((v,i) => { const x=pad.l+i*col+(col-bW)/2, bH=(v/mx)*cH, y=pad.t+cH-bH; const gr=ctx.createLinearGradient(0,y,0,y+bH); gr.addColorStop(0,v>0?'#0b1120':'#e2e8f0'); gr.addColorStop(1,v>0?'#14b8a6':'#f1f5f9'); ctx.fillStyle=gr; ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(x,y,bW,Math.max(bH,2),[4,4,0,0]);else ctx.rect(x,y,bW,Math.max(bH,2)); ctx.fill(); if(v>0){ctx.fillStyle='#0b1120';ctx.font='bold 11px Sora';ctx.textAlign='center';ctx.fillText(v,x+bW/2,y-5);} ctx.fillStyle='#94a3b8';ctx.font='10px DM Sans';ctx.textAlign='center';ctx.fillText(lbls[i],x+bW/2,H-pad.b+16); });
+}
+
+// ── Export ────────────────────────────────────────────────────────
+window.exportSchools = () => {
+  const rows = allRegistrations.map(r => ({
+    'School Name':       r.school?.name || '',
+    'Type':              r.school?.type || '',
+    'Ownership':         r.school?.ownership || '',
+    'Reg. Number':       r.school?.regNo || '',
+    'School Phone':      r.school?.phone || '',
+    'School Email':      r.school?.email || '',
+    'School Address':    r.school?.address || '',
+    'School City':       r.school?.city || '',
+    'School State':      r.school?.state || '',
+    'Proprietor First':  r.proprietor?.firstName || '',
+    'Proprietor Last':   r.proprietor?.lastName || '',
+    'Proprietor Phone':  r.proprietor?.phone || '',
+    'Proprietor Email':  r.proprietor?.email || '',
+    'NIN':               r.proprietor?.nin || '',
+    'Prop. Address':     r.proprietor?.address || '',
+    'Prop. State':       r.proprietor?.state || '',
+    'Candidate Count':   (r.candidates||[]).length,
+    'Submitted':         fmtDate(r.submittedAt),
+    'Reference':         'U13-' + r.id.substring(0,8).toUpperCase(),
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Schools');
+  XLSX.writeFile(wb, `unite13_schools_${today()}.xlsx`);
+  toast('success','Exported!','Schools data saved to Excel.');
+};
+
+window.exportCandidates = () => {
+  const rows = allCandidateFlat.map(c => ({
+    'Surname':    c.surname||'',
+    'First Name': c.firstname||'',
+    'Other Names':c.othername||'',
+    'Gender':     c.gender||'',
+    'DOB':        c.dob||'',
+    'Class':      c.class||'',
+    'Subject':    c.subject||'',
+    'School':     c.schoolName||'',
+    'School State':c.schoolState||'',
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Candidates');
+  XLSX.writeFile(wb, `unite13_candidates_${today()}.xlsx`);
+  toast('success','Exported!','Candidates data saved to Excel.');
+};
+
+window.exportAllData = () => {
+  const wb = XLSX.utils.book_new();
+  const schoolRows = allRegistrations.map(r => ({
+    'School Name': r.school?.name||'', 'Type': r.school?.type||'', 'State': r.school?.state||'',
+    'Proprietor': `${r.proprietor?.firstName||''} ${r.proprietor?.lastName||''}`,
+    'Phone': r.proprietor?.phone||'', 'Candidates': (r.candidates||[]).length,
+    'Ref': 'U13-'+r.id.substring(0,8).toUpperCase(), 'Date': fmtDate(r.submittedAt)
+  }));
+  const candRows = allCandidateFlat.map(c => ({
+    'Surname':c.surname||'','First Name':c.firstname||'','Other':c.othername||'',
+    'Gender':c.gender||'','DOB':c.dob||'','Class':c.class||'','Subject':c.subject||'',
+    'School':c.schoolName||'','State':c.schoolState||''
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(schoolRows), 'Schools');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(candRows),   'Candidates');
+  XLSX.writeFile(wb, `unite13_all_data_${today()}.xlsx`);
+  toast('success','Full export done!','Both sheets saved to Excel.');
+};
+
+// ── Settings ──────────────────────────────────────────────────────
+window.saveSettings = async () => {
+  if (!currentUser) return;
+
+  const fee = Number(document.getElementById('set-fee').value) || 5000;
+  const formSettings = {
+    title:       document.getElementById('set-title').value.trim(),
+    description: document.getElementById('set-desc').value.trim(),
+    deadline:    document.getElementById('set-deadline').value,
+  };
+
+  // Portal config — stored separately so index.html can read without auth
+  const portalConfig = {
+    applicationFee:      fee,
+    monnifyApiKey:       document.getElementById('set-monnify-key').value.trim()      || 'MK_TEST_NDS2MBQEUJ',
+    monnifyContractCode: document.getElementById('set-monnify-contract').value.trim() || '1210042254',
+    monnifySecretKey:    document.getElementById('set-monnify-secret').value.trim(),
+    isLive:              document.getElementById('set-monnify-live').value === 'true',
+    updatedAt:           Timestamp.now(),
+  };
+
+  try {
+    // Save admin profile settings
+    await updateDoc(doc(db,'admins',currentUser.uid), {
+      firstName:    document.getElementById('set-name').value.trim(),
+      organisation: document.getElementById('set-org').value.trim(),
+      formSettings,
+    });
+
+    // Save portal_config — upsert (setDoc with merge)
+    await setDoc(doc(db,'portal_config','unite13'), portalConfig, { merge: true });
+
+    toast('success','Settings saved!', `Registration fee set to ₦${fee.toLocaleString()}.`);
+  } catch(e) { toast('error','Save failed', e.message); }
+};
+
+window.copyFormUrl = () => {
+  const url = document.getElementById('set-form-url').value;
+  navigator.clipboard.writeText(url).then(() => toast('success','Link copied!','Share with school proprietors.')).catch(()=>{});
+};
+
+// ── Tab switching ─────────────────────────────────────────────────
+window.switchTab = (tab) => {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.sb-link, .nav-link').forEach(l => {
+    l.classList.toggle('active', (l.getAttribute('onclick')||'').includes(`'${tab}'`));
+  });
+};
+
+// ── Helpers ───────────────────────────────────────────────────────
+function animCount(id, target) {
+  const el = document.getElementById(id); if(!el) return;
+  let c=0; const step=Math.max(1,Math.ceil(target/20));
+  const iv=setInterval(()=>{c=Math.min(c+step,target);el.textContent=c;if(c>=target)clearInterval(iv);},40);
+}
+function fmtDate(ts) {
+  if (!ts?.toDate) return '—';
+  return ts.toDate().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function toast(type,title,msg='',dur=4500) {
+  const icons={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const wrap=document.getElementById('toast-wrap'); const el=document.createElement('div');
+  el.className=`toast t-${type}`;
+  el.innerHTML=`<div class="t-ico">${icons[type]}</div><div class="t-body"><div class="t-title">${title}</div>${msg?`<div class="t-msg">${msg}</div>`:''}</div><button class="t-close" onclick="this.parentElement.remove()">✕</button>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.classList.add('leaving');setTimeout(()=>el.remove(),350);},dur);
+}
+</script>
+</body>
+</html>

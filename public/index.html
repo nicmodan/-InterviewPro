@@ -3,297 +3,870 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>InterviewPro — Online Application Portal</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>Unite 13 Adeota — School Registration Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    /* ── Landing-specific ── */
-    body { background:var(--white); overflow-x:hidden }
+    :root {
+      --navy:#0b1120;--navy2:#162032;--navy3:#1e2d42;
+      --saffron:#f59e0b;--saf2:#d97706;--saf-lt:#fef3c7;--saf-xlt:#fffbeb;
+      --teal:#14b8a6;--teal-lt:#ccfbf1;
+      --green:#22c55e;--green-lt:#dcfce7;
+      --red:#ef4444;--red-lt:#fee2e2;
+      --blue:#3b82f6;--blue-lt:#dbeafe;
+      --ink:#0f172a;--ink2:#334155;--ink3:#64748b;--ink4:#94a3b8;
+      --line:#e2e8f0;--line2:#f1f5f9;--bg:#f8fafc;--white:#ffffff;
+      --r:12px;--r-sm:8px;--r-lg:20px;
+      --sh:0 1px 8px rgba(11,17,32,.07);
+      --sh-md:0 4px 24px rgba(11,17,32,.11);
+      --sh-lg:0 12px 48px rgba(11,17,32,.16);
+      --tr:.2s ease;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
+    h1,h2,h3,h4,h5{font-family:'Sora',sans-serif;line-height:1.2;font-weight:700}
+    a{color:inherit;text-decoration:none}
+    button,input,select,textarea{font-family:inherit;font-size:inherit}
+    button{cursor:pointer;border:none;background:none}
+    ul{list-style:none}
+
+    /* Nav */
+    .top-nav{background:var(--navy);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;position:sticky;top:0;z-index:500;box-shadow:0 2px 20px rgba(0,0,0,.3)}
+    .nav-brand{display:flex;align-items:center;gap:.85rem}
+    .nav-logo{width:40px;height:40px;background:var(--saffron);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:.95rem;color:var(--navy)}
+    .nav-title{color:#fff;font-family:'Sora',sans-serif;font-weight:700;font-size:1.05rem}
+    .nav-sub{color:rgba(255,255,255,.45);font-size:.72rem}
+    .nav-badge{background:rgba(245,158,11,.18);color:var(--saffron);border:1px solid rgba(245,158,11,.3);padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+    /* Nav auth links */
+    .nav-auth{display:flex;align-items:center;gap:.35rem}
+    .nav-auth-link{display:flex;align-items:center;gap:.4rem;padding:.42rem .85rem;border-radius:8px;font-size:.82rem;font-weight:500;color:rgba(255,255,255,.65);text-decoration:none;transition:all var(--tr);white-space:nowrap}
+    .nav-auth-link:hover{color:#fff;background:rgba(255,255,255,.1)}
+    .nav-auth-link svg{width:14px;height:14px;flex-shrink:0}
+    .nav-auth-divider{width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 .15rem}
+    .nav-auth-cta{background:var(--saffron);color:var(--navy)!important;font-weight:700;padding:.42rem 1rem}
+    .nav-auth-cta:hover{background:var(--saf2)!important;transform:translateY(-1px)}
+    @media(max-width:600px){
+      .nav-auth-link span{display:none}
+      .nav-auth-cta span{display:inline!important}
+      .nav-auth-divider{display:none}
+    }
 
     /* Hero */
-    .hero {
-      background:var(--navy);
-      min-height:100vh;
-      display:flex; flex-direction:column;
-      position:relative; overflow:hidden;
-    }
-    .hero-nav {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:1.4rem 3rem; position:relative; z-index:2;
-    }
-    .hero-logo { display:flex; align-items:center; gap:.75rem }
-    .hero-logo-mark { width:40px; height:40px; background:var(--saffron); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:800; color:var(--navy); font-size:1rem }
-    .hero-logo span  { font-family:'Sora',sans-serif; font-weight:700; color:#fff; font-size:1.1rem }
-    .hero-nav-links  { display:flex; gap:2rem }
-    .hero-nav-links a { color:rgba(255,255,255,.65); font-size:.9rem; font-weight:500; transition:color var(--tr) }
-    .hero-nav-links a:hover { color:#fff }
-    .hero-nav-cta { display:flex; gap:.7rem }
+    .hero{background:linear-gradient(135deg,var(--navy) 0%,#0f2a4a 50%,var(--navy3) 100%);padding:3.5rem 2.5rem 4rem;position:relative;overflow:hidden;text-align:center}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 50%,rgba(245,158,11,.08) 0%,transparent 70%),radial-gradient(ellipse 40% 60% at 80% 30%,rgba(20,184,166,.06) 0%,transparent 70%)}
+    .hero-deco{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+    .hero-deco::before{content:'';position:absolute;width:600px;height:600px;border:1px solid rgba(255,255,255,.04);border-radius:50%;top:-200px;right:-150px}
+    .hero-deco::after{content:'';position:absolute;width:400px;height:400px;border:1px solid rgba(245,158,11,.06);border-radius:50%;bottom:-100px;left:-100px}
+    .hero-inner{position:relative;z-index:1;max-width:700px;margin:0 auto}
+    .hero-eyebrow{display:inline-flex;align-items:center;gap:.5rem;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:var(--saffron);padding:5px 16px;border-radius:20px;font-size:.78rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:1.4rem}
+    .hero h1{font-size:2.8rem;color:#fff;line-height:1.1;margin-bottom:1rem}
+    .hero h1 span{color:var(--saffron)}
+    .hero p{color:rgba(255,255,255,.6);font-size:1rem;max-width:520px;margin:0 auto 2rem;line-height:1.7}
+    .hero-steps{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:2.5rem}
+    .hs-item{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);padding:.55rem 1.1rem;border-radius:30px;font-size:.8rem;font-weight:600;color:rgba(255,255,255,.7);margin:.25rem}
+    .hs-num{width:22px;height:22px;border-radius:50%;background:var(--saffron);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0}
 
-    .hero-body {
-      flex:1; display:flex; align-items:center;
-      padding:4rem 3rem; position:relative; z-index:2;
-      max-width:1200px; margin:0 auto; width:100%; gap:4rem;
-    }
-    .hero-text { flex:1; max-width:580px }
-    .hero-eyebrow {
-      display:inline-flex; align-items:center; gap:.5rem;
-      background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.3);
-      color:var(--saffron); padding:5px 14px; border-radius:20px;
-      font-size:.8rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-      margin-bottom:1.5rem;
-    }
-    .hero-text h1 { font-size:3.5rem; color:#fff; line-height:1.1; margin-bottom:1.2rem }
-    .hero-text h1 span { color:var(--saffron) }
-    .hero-text p { color:rgba(255,255,255,.6); font-size:1.05rem; line-height:1.7; margin-bottom:2rem }
-    .hero-cta-row  { display:flex; gap:1rem; flex-wrap:wrap }
-    .hero-stats    { display:flex; gap:2.5rem; margin-top:3rem; padding-top:2rem; border-top:1px solid rgba(255,255,255,.1) }
-    .hstat-num  { font-family:'Sora',sans-serif; font-size:1.8rem; font-weight:800; color:#fff }
-    .hstat-lbl  { font-size:.82rem; color:rgba(255,255,255,.5) }
+    /* Layout */
+    .main-wrap{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 5rem}
+    .form-layout{display:grid;grid-template-columns:230px 1fr;gap:2.5rem;align-items:start}
+    @media(max-width:800px){.form-layout{grid-template-columns:1fr}.form-sidebar{display:none}}
 
-    /* Hero illustration */
-    .hero-visual { flex:0 0 420px; position:relative }
-    .hero-card-mock {
-      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
-      backdrop-filter:blur(12px); border-radius:var(--r-lg);
-      padding:2rem; animation:floatCard 4s ease-in-out infinite;
-    }
-    @keyframes floatCard { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-    .mock-row { display:flex; align-items:center; gap:.75rem; padding:.7rem 0; border-bottom:1px solid rgba(255,255,255,.07) }
-    .mock-row:last-child { border:none }
-    .mock-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0 }
-    .mock-a1 { background:linear-gradient(135deg,var(--saffron),var(--saf2)) }
-    .mock-a2 { background:linear-gradient(135deg,var(--teal),#0891b2) }
-    .mock-a3 { background:linear-gradient(135deg,var(--purple),#7c3aed) }
-    .mock-info { flex:1 }
-    .mock-name { font-size:.85rem; font-weight:600; color:#fff; margin-bottom:2px }
-    .mock-sub  { font-size:.75rem; color:rgba(255,255,255,.45) }
-    .mock-badge{ padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:700 }
-    .mock-paid { background:rgba(34,197,94,.2); color:#4ade80 }
-    .mock-pend { background:rgba(245,158,11,.2); color:var(--saffron) }
-    .hero-mini-stat { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-top:1.2rem }
-    .hms { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:var(--r-sm); padding:.9rem; text-align:center }
-    .hms-n { font-family:'Sora',sans-serif; font-size:1.5rem; font-weight:800; color:#fff }
-    .hms-l { font-size:.72rem; color:rgba(255,255,255,.45); margin-top:2px }
+    /* Sidebar */
+    .form-sidebar{position:sticky;top:80px}
+    .sidebar-steps{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh)}
+    .ss-header{background:var(--navy);padding:1rem 1.2rem}
+    .ss-header p{color:rgba(255,255,255,.5);font-size:.74rem;margin-top:.2rem}
+    .ss-header h4{color:#fff;font-size:.92rem}
+    .ss-item{display:flex;align-items:flex-start;gap:.75rem;padding:.9rem 1.2rem;border-bottom:1px solid var(--line);transition:background var(--tr)}
+    .ss-item:last-child{border-bottom:none}
+    .ss-item.active{background:var(--saf-lt)}
+    .ss-item.done{background:var(--green-lt)}
+    .ss-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:700;color:var(--ink4);flex-shrink:0;transition:all var(--tr)}
+    .ss-item.active .ss-num{border-color:var(--saf2);color:var(--saf2);background:#fff}
+    .ss-item.done .ss-num{background:var(--green);border-color:var(--green);color:#fff}
+    .ss-info strong{display:block;font-size:.84rem;color:var(--ink)}
+    .ss-info small{font-size:.73rem;color:var(--ink4)}
+    .ss-item.active .ss-info strong{color:var(--saf2)}
+    .ss-item.done .ss-info strong{color:var(--green)}
 
-    /* Deco */
-    .hero-deco { position:absolute; inset:0; pointer-events:none; overflow:hidden }
-    .deco-c { position:absolute; border-radius:50%; border:1px solid rgba(255,255,255,.04) }
-    .deco-c1 { width:700px; height:700px; top:-200px; right:-200px }
-    .deco-c2 { width:400px; height:400px; bottom:-100px; left:-100px; background:rgba(245,158,11,.04) }
-    .deco-grid {
-      position:absolute; inset:0;
-      background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
-      background-size:60px 60px;
-    }
+    /* Form card */
+    .form-card{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh)}
+    .prog-wrap{padding:1.4rem 1.8rem .8rem;border-bottom:1px solid var(--line)}
+    .prog-bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+    .prog-fill{height:100%;background:linear-gradient(90deg,var(--saffron),var(--saf2));border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+    .prog-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+    .prog-label span{font-size:.78rem;color:var(--ink3);font-weight:600}
+    .prog-label strong{font-size:.78rem;color:var(--navy);font-weight:700}
 
-    /* Features */
-    .features-section { padding:6rem 3rem; background:var(--bg) }
-    .section-head { text-align:center; margin-bottom:4rem }
-    .section-label { display:inline-block; background:var(--saf-lt); color:var(--saf2); padding:4px 14px; border-radius:20px; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:1rem }
-    .section-head h2 { font-size:2.2rem; margin-bottom:.7rem }
-    .section-head p  { color:var(--ink3); max-width:520px; margin:0 auto; font-size:.96rem }
-    .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1100px; margin:0 auto }
-    @media(max-width:760px) { .features-grid { grid-template-columns:1fr 1fr } }
-    @media(max-width:480px) { .features-grid { grid-template-columns:1fr } }
-    .feature-card { background:var(--white); border:1px solid var(--line); border-radius:var(--r-lg); padding:2rem; transition:transform var(--tr),box-shadow var(--tr) }
-    .feature-card:hover { transform:translateY(-4px); box-shadow:var(--sh-md) }
-    .feat-icon-wrap { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:1.2rem }
-    .fi-navy   { background:var(--navy2); }
-    .fi-amber  { background:var(--saf-lt) }
-    .fi-teal   { background:var(--teal-lt) }
-    .fi-blue   { background:var(--blue-lt) }
-    .fi-green  { background:var(--green-lt) }
-    .fi-purple { background:#f3e8ff }
-    .feature-card h3 { font-size:1.05rem; margin-bottom:.5rem }
-    .feature-card p  { font-size:.88rem; color:var(--ink3); line-height:1.6 }
+    /* Steps */
+    .fstep{display:none;padding:1.8rem;animation:sIn .3s ease}
+    .fstep.active{display:block}
+    @keyframes sIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+    .step-head{margin-bottom:1.8rem;padding-bottom:1.4rem;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between}
+    .step-tag{font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink4);display:block;margin-bottom:.35rem}
+    .step-head h2{font-size:1.4rem}
+    .step-head p{color:var(--ink3);font-size:.87rem;margin-top:.2rem}
+    .step-emoji{font-size:2.4rem;opacity:.25}
 
-    /* How it works */
-    .how-section { padding:6rem 3rem; background:var(--navy); position:relative; overflow:hidden }
-    .how-section .section-head h2 { color:#fff }
-    .how-section .section-head p  { color:rgba(255,255,255,.55) }
-    .how-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; max-width:1000px; margin:0 auto; align-items:start }
-    @media(max-width:760px) { .how-grid { grid-template-columns:1fr } .how-section { padding:4rem 1.5rem } }
-    .how-side-label { font-size:.75rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:1.5rem }
-    .how-side-label.admin { color:var(--saffron) }
-    .how-side-label.appl  { color:var(--teal) }
-    .how-step { display:flex; gap:1rem; margin-bottom:1.4rem }
-    .how-num { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-size:.82rem; font-weight:800; flex-shrink:0; margin-top:2px }
-    .how-num.admin { background:rgba(245,158,11,.2); color:var(--saffron); border:1px solid rgba(245,158,11,.3) }
-    .how-num.appl  { background:rgba(20,184,166,.2); color:var(--teal);    border:1px solid rgba(20,184,166,.3) }
-    .how-info h4 { color:#fff; font-size:.95rem; margin-bottom:.25rem }
-    .how-info p  { color:rgba(255,255,255,.5); font-size:.84rem; line-height:1.6 }
+    /* Forms */
+    .fg{display:grid;grid-template-columns:1fr 1fr;gap:0 1.2rem}
+    .fg .full{grid-column:1/-1}
+    @media(max-width:560px){.fg{grid-template-columns:1fr}.fg .full{grid-column:1}}
+    .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:.9rem}
+    .form-label{font-size:.82rem;font-weight:600;color:var(--ink2);letter-spacing:.01em}
+    .req{color:var(--red);margin-left:1px}
+    .form-input,.form-select,.form-textarea{border:1.5px solid var(--line);border-radius:var(--r-sm);padding:.68rem .95rem;color:var(--ink);background:var(--white);outline:none;width:100%;transition:border-color var(--tr),box-shadow var(--tr)}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(11,17,32,.08)}
+    .form-input.err,.form-select.err{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(239,68,68,.1)!important}
+    .form-textarea{resize:vertical;min-height:90px}
+    .form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;padding-right:2.5rem;cursor:pointer}
+    .input-icon-wrap{position:relative}
+    .input-icon-wrap .form-input{padding-left:2.6rem}
+    .i-icon{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);color:var(--ink4);pointer-events:none;width:16px;height:16px}
+    .field-hint{font-size:.77rem;color:var(--ink4)}
+    .section-divider{font-size:.73rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:1.4rem 0 .9rem;padding-bottom:.6rem;border-bottom:1px dashed var(--line);display:flex;align-items:center;gap:.5rem}
 
-    /* CTA */
-    .cta-section { padding:6rem 3rem; text-align:center; background:var(--white) }
-    .cta-section h2 { font-size:2.5rem; margin-bottom:.8rem }
-    .cta-section p  { color:var(--ink3); font-size:1rem; margin-bottom:2rem }
-    .cta-row { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap }
+    /* Buttons */
+    .step-foot{display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;padding-top:1.4rem;border-top:1px solid var(--line)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.72rem 1.5rem;border-radius:var(--r-sm);font-weight:600;font-size:.92rem;transition:all var(--tr);border:none;cursor:pointer}
+    .btn-primary{background:var(--navy);color:#fff}
+    .btn-primary:hover{background:var(--navy2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(11,17,32,.18)}
+    .btn-saffron{background:var(--saffron);color:var(--navy)}
+    .btn-saffron:hover{background:var(--saf2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,158,11,.35)}
+    .btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+    .btn-outline:hover{border-color:var(--ink3);background:var(--line2)}
+    .btn-teal{background:var(--teal);color:#fff}
+    .btn-teal:hover{background:#0d9488;transform:translateY(-1px)}
+    .btn-sm{padding:.45rem .9rem;font-size:.82rem}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+    .spin{display:inline-block;width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;animation:spinR .7s linear infinite}
+    .spin.dark{border-color:rgba(0,0,0,.12);border-top-color:var(--ink)}
+    .spin.hidden{display:none}
+    @keyframes spinR{to{transform:rotate(360deg)}}
 
-    /* Footer */
-    .footer { background:var(--navy); color:rgba(255,255,255,.4); text-align:center; padding:2rem; font-size:.84rem }
-    .footer span { color:var(--saffron) }
+    /* Toast */
+    #toast-wrap{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+    .toast{display:flex;align-items:flex-start;gap:.75rem;background:var(--white);border-radius:var(--r);padding:.85rem 1.1rem .85rem 1rem;box-shadow:var(--sh-lg);min-width:280px;max-width:360px;border-left:4px solid var(--navy);pointer-events:all;animation:toastIn .3s cubic-bezier(.34,1.56,.64,1)}
+    .toast.t-success{border-left-color:var(--green)}.toast.t-error{border-left-color:var(--red)}.toast.t-warning{border-left-color:var(--saffron)}
+    .toast.leaving{opacity:0;transform:translateX(16px);transition:.3s ease}
+    .t-ico{font-size:1rem;flex-shrink:0;margin-top:2px}.t-body{flex:1}.t-title{font-weight:700;font-size:.88rem;color:var(--ink)}.t-msg{font-size:.8rem;color:var(--ink3);margin-top:2px}
+    .t-close{color:var(--ink4);font-size:.85rem;flex-shrink:0;cursor:pointer;padding:2px}
+    @keyframes toastIn{from{opacity:0;transform:translateX(20px) scale(.95)}to{opacity:1;transform:none}}
 
-    @media(max-width:900px) {
-      .hero-body    { flex-direction:column; padding:3rem 1.5rem; gap:3rem }
-      .hero-visual  { flex:none; width:100% }
-      .hero-nav     { padding:1.2rem 1.5rem }
-      .hero-text h1 { font-size:2.4rem }
-      .hero-nav-links { display:none }
-      .features-section,.how-section,.cta-section { padding:4rem 1.5rem }
-    }
+    /* Candidate table */
+    .ap-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
+    .ap-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+    .table-wrap{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;overflow-x:auto}
+    .data-table{width:100%;border-collapse:collapse;min-width:600px}
+    .data-table th{text-align:left;padding:.75rem 1rem;background:var(--line2);border-bottom:1px solid var(--line);font-size:.73rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);white-space:nowrap}
+    .data-table td{padding:.8rem 1rem;border-bottom:1px solid var(--line);font-size:.86rem;vertical-align:middle}
+    .data-table tr:last-child td{border-bottom:none}
+    .data-table tbody tr:hover td{background:var(--bg)}
+    .table-empty{text-align:center;color:var(--ink4);padding:3rem!important;font-size:.9rem}
+    .ap-count-badge{background:var(--saf-lt);color:var(--saf2);border:1px solid rgba(245,158,11,.3);padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+    .btn-row-del{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--red);background:var(--red-lt);transition:all var(--tr);font-size:.85rem;cursor:pointer;border:none}
+    .btn-row-del:hover{background:var(--red);color:#fff}
+
+    /* Import */
+    .import-zone{border:2px dashed var(--line);border-radius:var(--r);padding:2rem;text-align:center;cursor:pointer;transition:all var(--tr);background:var(--line2);margin-bottom:1rem}
+    .import-zone:hover,.import-zone.dragover{border-color:var(--teal);background:var(--teal-lt)}
+    .import-zone svg{width:36px;height:36px;color:var(--ink4);margin:0 auto .8rem;display:block}
+    .import-zone p{font-size:.88rem;color:var(--ink3)}
+    .import-zone strong{color:var(--teal)}
+    .template-note{background:var(--blue-lt);border:1px solid rgba(59,130,246,.2);border-radius:var(--r-sm);padding:.9rem 1.1rem;font-size:.82rem;color:var(--ink2);display:flex;align-items:flex-start;gap:.65rem;margin-bottom:1rem}
+    .add-row-form{background:var(--line2);border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1rem}
+
+    /* Review */
+    .rv-sec{margin-bottom:1.5rem}
+    .rv-sec-title{font-size:.73rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:.9rem;padding-bottom:.6rem;border-bottom:1px dashed var(--line)}
+    .rv-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+    .rv-item .rv-l{font-size:.75rem;color:var(--ink4);margin-bottom:2px}
+    .rv-item .rv-v{font-weight:600;font-size:.9rem;word-break:break-word}
+    .rv-cand-count{background:linear-gradient(135deg,var(--navy),var(--navy3));color:#fff;border-radius:var(--r);padding:1.2rem;text-align:center;margin-top:1rem}
+    .rv-cand-count .num{font-family:'Sora',sans-serif;font-size:3rem;font-weight:800;color:var(--saffron);line-height:1}
+    .rv-cand-count p{font-size:.82rem;color:rgba(255,255,255,.6);margin-top:.3rem}
+
+    /* Declaration */
+    .decl-box{background:var(--teal-lt);border:1.5px solid rgba(20,184,166,.2);border-radius:var(--r-sm);padding:1rem 1.2rem;margin-bottom:1.4rem}
+    .check-label{display:flex;align-items:flex-start;gap:.7rem;cursor:pointer;font-size:.88rem}
+    .check-box{width:18px;height:18px;min-width:18px;border:2px solid var(--line);border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all var(--tr);margin-top:2px}
+    .check-box svg{width:11px;height:11px;opacity:0;transition:opacity var(--tr)}
+    .check-label input{display:none}
+    .check-label input:checked + .check-box{background:var(--teal);border-color:var(--teal)}
+    .check-label input:checked + .check-box svg{opacity:1}
+
+    /* Payment checkout */
+    .pay-checkout{background:linear-gradient(135deg,var(--navy) 0%,#0f2a4a 100%);border-radius:var(--r-lg);padding:1.8rem;color:#fff;margin-bottom:1.4rem;position:relative;overflow:hidden}
+    .pay-checkout::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='20' cy='20' r='10'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+    .pay-checkout-inner{position:relative;z-index:1}
+    .pay-checkout h4{font-size:1rem;margin-bottom:.3rem}
+    .pay-checkout p{color:rgba(255,255,255,.55);font-size:.84rem;margin-bottom:1.4rem}
+    .pay-amount-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.4rem}
+    .pay-fee-lbl{font-size:.74rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem}
+    .pay-fee-amt{font-family:'Sora',sans-serif;font-size:2.8rem;font-weight:800;color:var(--saffron);line-height:1}
+    .pay-secure{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80;padding:4px 10px;border-radius:20px;font-size:.73rem;font-weight:700;display:flex;align-items:center;gap:.3rem;align-self:flex-end}
+    .pay-methods{display:flex;gap:.5rem;flex-wrap:wrap}
+    .pay-method{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:4px 10px;font-size:.74rem;color:rgba(255,255,255,.7);font-weight:600}
+
+    /* ID Card */
+    .id-card{background:linear-gradient(135deg,#0b1120 0%,#1e2d42 100%);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-lg);margin:0 auto 1.5rem;color:#fff;max-width:460px}
+    .id-card-header{background:var(--saffron);padding:1rem 1.4rem;display:flex;align-items:center;justify-content:space-between}
+    .id-card-header span{font-family:'Sora',sans-serif;font-weight:800;font-size:.88rem;color:var(--navy)}
+    .id-card-body{padding:1.3rem}
+    .id-card-row{display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.85rem}
+    .id-card-row:last-child{border-bottom:none}
+    .id-card-lbl{color:rgba(255,255,255,.45);font-size:.75rem}
+    .id-card-val{font-weight:600;text-align:right;max-width:240px;word-break:break-word}
+    .id-card-ref{text-align:center;padding:1rem 1.4rem;border-top:1px solid rgba(255,255,255,.1)}
+    .id-ref-num{font-family:monospace;font-size:1.3rem;font-weight:800;color:var(--saffron);letter-spacing:.1em}
+    .id-ref-lbl{font-size:.72rem;color:rgba(255,255,255,.4);margin-top:.2rem}
+
+    /* Success */
+    .success-screen{display:none;text-align:center;padding:2.5rem 2rem}
+    .success-screen.active{display:block;animation:sIn .5s ease}
+    .success-icon{width:80px;height:80px;background:var(--green-lt);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 1.5rem}
+    .success-screen h2{font-size:1.8rem;margin-bottom:.6rem}
+    .success-screen .sub{color:var(--ink3);max-width:440px;margin:0 auto 1.5rem}
+
+    /* Confetti */
+    #confetti-box{position:fixed;inset:0;pointer-events:none;z-index:9990}
+    .confetti-piece{position:absolute;top:-10px;animation:confFall linear forwards}
+    @keyframes confFall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+    .hidden{display:none!important}
+    @media(max-width:600px){.hero h1{font-size:2rem}.top-nav{padding:0 1rem}}
   </style>
 </head>
 <body>
-
 <div id="toast-wrap"></div>
+<div id="confetti-box"></div>
 
-<!-- ═══ HERO ═══ -->
+<!-- Nav -->
+<nav class="top-nav">
+  <div class="nav-brand">
+    <div class="nav-logo">U13</div>
+    <div><div class="nav-title">Unite 13 Adeota</div><div class="nav-sub">School Registration &amp; Exam Portal</div></div>
+  </div>
+  <div class="nav-auth">
+    <span class="nav-badge" style="margin-right:.5rem">Open Registration</span>
+    <div class="nav-auth-divider"></div>
+    <a href="login.html" class="nav-auth-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+      <span>Admin Login</span>
+    </a>
+    <div class="nav-auth-divider"></div>
+    <a href="register.html" class="nav-auth-link nav-auth-cta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="8.5" cy="7" r="4"/>
+        <line x1="20" y1="8" x2="20" y2="14"/>
+        <line x1="23" y1="11" x2="17" y2="11"/>
+      </svg>
+      <span>Sign Up</span>
+    </a>
+  </div>
+</nav>
+
+<!-- Hero -->
 <section class="hero">
-  <div class="hero-deco">
-    <div class="deco-grid"></div>
-    <div class="deco-c deco-c1"></div>
-    <div class="deco-c deco-c2"></div>
+  <div class="hero-deco"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">📋 2025 / 2026 Academic Session</div>
+    <h1>Unite 13 <span>Adeota</span> Exam<br/>Registration Portal</h1>
+    <p>Register your school and submit your candidates for the Adeota examination. The process takes under 10 minutes.</p>
+    <div class="hero-steps">
+      <div class="hs-item"><div class="hs-num">1</div> Proprietor Details</div>
+      <div class="hs-item"><div class="hs-num">2</div> School Information</div>
+      <div class="hs-item"><div class="hs-num">3</div> Candidates</div>
+      <div class="hs-item"><div class="hs-num">4</div> Review &amp; Pay</div>
+    </div>
   </div>
+</section>
 
-  <nav class="hero-nav">
-    <div class="hero-logo">
-      <div class="hero-logo-mark">IP</div>
-      <span>InterviewPro</span>
-    </div>
-    <div class="hero-nav-links">
-      <a href="#features">Features</a>
-      <a href="#how">How it works</a>
-    </div>
-    <div class="hero-nav-cta">
-      <a href="login.html" class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)">Sign In</a>
-      <a href="register.html" class="btn btn-saffron">Get Started</a>
-    </div>
-  </nav>
+<!-- Main -->
+<div class="main-wrap">
+  <div class="form-layout">
 
-  <div class="hero-body">
-    <div class="hero-text">
-      <div class="hero-eyebrow">⚡ Online Application Portal</div>
-      <h1>Streamline your <span>interview</span> applications</h1>
-      <p>Create custom application forms, set fees, share links, and manage applicants — all in one powerful platform. Built for Nigerian educational institutions and recruitment agencies.</p>
-      <div class="hero-cta-row">
-        <a href="register.html" class="btn btn-saffron btn-lg">Start for Free →</a>
-        <a href="login.html"    class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.3)">Admin Login</a>
+    <aside class="form-sidebar">
+      <div class="sidebar-steps">
+        <div class="ss-header"><h4>Registration Steps</h4><p>Complete all 4 sections</p></div>
+        <div class="ss-item active" id="ss-1"><div class="ss-num" id="ssn-1">1</div><div class="ss-info"><strong>Proprietor Details</strong><small>Your personal info</small></div></div>
+        <div class="ss-item" id="ss-2"><div class="ss-num" id="ssn-2">2</div><div class="ss-info"><strong>School Information</strong><small>School name, address, type</small></div></div>
+        <div class="ss-item" id="ss-3"><div class="ss-num" id="ssn-3">3</div><div class="ss-info"><strong>Candidates</strong><small>Students writing Adeota</small></div></div>
+        <div class="ss-item" id="ss-4"><div class="ss-num" id="ssn-4">4</div><div class="ss-info"><strong>Review &amp; Pay</strong><small>Confirm &amp; complete payment</small></div></div>
       </div>
-      <div class="hero-stats">
-        <div><div class="hstat-num">500+</div><div class="hstat-lbl">Applications handled</div></div>
-        <div><div class="hstat-num">₦0</div><div class="hstat-lbl">Setup cost</div></div>
-        <div><div class="hstat-num">99%</div><div class="hstat-lbl">Uptime</div></div>
+    </aside>
+
+    <div class="form-card" id="form-card">
+      <div class="prog-wrap" id="prog-wrap">
+        <div class="prog-label"><span id="step-label">Step 1 of 4</span><strong id="step-name">Proprietor Details</strong></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:25%"></div></div>
+      </div>
+
+      <div id="form-steps">
+
+        <!-- STEP 1 — PROPRIETOR -->
+        <div class="fstep active" id="step-1">
+          <div class="step-head"><div><span class="step-tag">Step 1 of 4</span><h2>Proprietor Details</h2><p>Personal information of the school proprietor / owner.</p></div><span class="step-emoji">👤</span></div>
+          <div class="fg">
+            <div class="form-group"><label class="form-label">First Name <span class="req">*</span></label><input type="text" id="p-firstName" class="form-input" placeholder="e.g. Chukwuemeka" required/></div>
+            <div class="form-group"><label class="form-label">Last Name <span class="req">*</span></label><input type="text" id="p-lastName" class="form-input" placeholder="e.g. Adeyemi" required/></div>
+            <div class="form-group"><label class="form-label">Middle Name</label><input type="text" id="p-middleName" class="form-input" placeholder="Optional"/></div>
+            <div class="form-group"><label class="form-label">Gender <span class="req">*</span></label><select id="p-gender" class="form-select" required><option value="">Select…</option><option>Male</option><option>Female</option></select></div>
+            <div class="form-group"><label class="form-label">Date of Birth <span class="req">*</span></label><input type="date" id="p-dob" class="form-input" required/></div>
+            <div class="form-group"><label class="form-label">Phone Number <span class="req">*</span></label><div class="input-icon-wrap"><svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14.91 19.79 19.79 0 0 1 1.07 6.24 2 2 0 0 1 3.05 4h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 11a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 19.73v-.81z"/></svg><input type="tel" id="p-phone" class="form-input" placeholder="+234 800 000 0000" required/></div></div>
+            <div class="form-group"><label class="form-label">Alternate Phone</label><div class="input-icon-wrap"><svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14.91 19.79 19.79 0 0 1 1.07 6.24 2 2 0 0 1 3.05 4h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 11a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 19.73v-.81z"/></svg><input type="tel" id="p-altphone" class="form-input" placeholder="Optional second number"/></div></div>
+            <div class="form-group full"><label class="form-label">Email Address <span class="req">*</span></label><div class="input-icon-wrap"><svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input type="email" id="p-email" class="form-input" placeholder="proprietor@school.edu.ng" required/></div></div>
+            <div class="form-group full"><label class="form-label">Residential Address <span class="req">*</span></label><input type="text" id="p-address" class="form-input" placeholder="e.g. 12 Adeola Odeku Street, Victoria Island" required/></div>
+            <div class="form-group"><label class="form-label">City / LGA <span class="req">*</span></label><input type="text" id="p-city" class="form-input" placeholder="e.g. Lagos Island" required/></div>
+            <div class="form-group"><label class="form-label">State <span class="req">*</span></label><select id="p-state" class="form-select" required><option value="">Select state…</option><option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option><option>Bauchi</option><option>Bayelsa</option><option>Benue</option><option>Borno</option><option>Cross River</option><option>Delta</option><option>Ebonyi</option><option>Edo</option><option>Ekiti</option><option>Enugu</option><option>FCT - Abuja</option><option>Gombe</option><option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option><option>Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option><option>Lagos</option><option>Nasarawa</option><option>Niger</option><option>Ogun</option><option>Ondo</option><option>Osun</option><option>Oyo</option><option>Plateau</option><option>Rivers</option><option>Sokoto</option><option>Taraba</option><option>Yobe</option><option>Zamfara</option></select></div>
+          </div>
+          <div class="step-foot"><div></div><button class="btn btn-primary" onclick="goNext(2)">Next: School Info <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+        </div>
+
+        <!-- STEP 2 — SCHOOL -->
+        <div class="fstep" id="step-2">
+          <div class="step-head"><div><span class="step-tag">Step 2 of 4</span><h2>School Information</h2><p>Details about your school / institution.</p></div><span class="step-emoji">🏫</span></div>
+          <div class="fg">
+            <div class="form-group full"><label class="form-label">School Name <span class="req">*</span></label><input type="text" id="s-name" class="form-input" placeholder="e.g. Adeota Model Secondary School" required/></div>
+            <div class="form-group"><label class="form-label">School Type <span class="req">*</span></label><select id="s-type" class="form-select" required><option value="">Select…</option><option>Primary School</option><option>Junior Secondary School (JSS)</option><option>Senior Secondary School (SSS)</option><option>Primary &amp; Secondary Combined</option><option>Private Tutoring Centre</option><option>Other</option></select></div>
+            <div class="form-group"><label class="form-label">School Ownership <span class="req">*</span></label><select id="s-ownership" class="form-select" required><option value="">Select…</option><option>Private</option><option>Public / Government</option><option>Mission / Religious</option><option>Community</option></select></div>
+            <div class="form-group"><label class="form-label">Year Established</label><input type="number" id="s-year" class="form-input" placeholder="e.g. 2005" min="1900" max="2025"/></div>
+            <div class="form-group"><label class="form-label">Registration Number</label><input type="text" id="s-regno" class="form-input" placeholder="Ministry of Education Reg. No."/></div>
+            <div class="form-group"><label class="form-label">School Phone <span class="req">*</span></label><div class="input-icon-wrap"><svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14.91 19.79 19.79 0 0 1 1.07 6.24 2 2 0 0 1 3.05 4h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 11a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 19.73v-.81z"/></svg><input type="tel" id="s-phone" class="form-input" placeholder="School contact number" required/></div></div>
+            <div class="form-group"><label class="form-label">School Email</label><div class="input-icon-wrap"><svg class="i-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input type="email" id="s-email" class="form-input" placeholder="school@example.edu.ng"/></div></div>
+            <div class="form-group full"><label class="form-label">School Address <span class="req">*</span></label><input type="text" id="s-address" class="form-input" placeholder="Full school address" required/></div>
+            <div class="form-group"><label class="form-label">City / LGA <span class="req">*</span></label><input type="text" id="s-city" class="form-input" placeholder="e.g. Ikorodu" required/></div>
+            <div class="form-group"><label class="form-label">State <span class="req">*</span></label><select id="s-state" class="form-select" required><option value="">Select state…</option><option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option><option>Bauchi</option><option>Bayelsa</option><option>Benue</option><option>Borno</option><option>Cross River</option><option>Delta</option><option>Ebonyi</option><option>Edo</option><option>Ekiti</option><option>Enugu</option><option>FCT - Abuja</option><option>Gombe</option><option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option><option>Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option><option>Lagos</option><option>Nasarawa</option><option>Niger</option><option>Ogun</option><option>Ondo</option><option>Osun</option><option>Oyo</option><option>Plateau</option><option>Rivers</option><option>Sokoto</option><option>Taraba</option><option>Yobe</option><option>Zamfara</option></select></div>
+            <div class="form-group full"><label class="form-label">Total Student Enrollment</label><input type="number" id="s-enrollment" class="form-input" placeholder="Approximate number of students" min="1"/></div>
+            <div class="form-group full"><label class="form-label">Additional Notes</label><textarea id="s-notes" class="form-textarea" placeholder="Any extra information about your school…"></textarea></div>
+          </div>
+          <div class="step-foot"><button class="btn btn-outline" onclick="goBack(1)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button><button class="btn btn-primary" onclick="goNext(3)">Next: Candidates <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+        </div>
+
+        <!-- STEP 3 — CANDIDATES -->
+        <div class="fstep" id="step-3">
+          <div class="step-head"><div><span class="step-tag">Step 3 of 4</span><h2>Candidate Registration</h2><p>Add students who will write the Adeota examination.</p></div><span class="step-emoji">✏️</span></div>
+          <div class="template-note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;color:var(--blue)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Import via Excel or add candidates manually. Columns must be: <strong>Surname | First Name | Other Names | Gender | Date of Birth | Class | Subject</strong>.</span></div>
+          <div class="ap-toolbar">
+            <div style="display:flex;align-items:center;gap:.6rem"><span style="font-weight:600;font-size:.88rem">Candidates</span><span class="ap-count-badge" id="ap-count">0 added</span></div>
+            <div class="ap-actions">
+              <button class="btn btn-outline btn-sm" onclick="downloadTemplate()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Excel Template</button>
+              <button class="btn btn-teal btn-sm" onclick="document.getElementById('excel-file').click()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import Excel</button>
+              <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelImport(event)"/>
+              <button class="btn btn-saffron btn-sm" onclick="toggleAddRow()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Manually</button>
+            </div>
+          </div>
+          <div class="import-zone" id="drop-zone" onclick="document.getElementById('excel-file').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <p>Drag &amp; drop your Excel file here, or <strong>click to browse</strong></p>
+            <p style="font-size:.76rem;margin-top:.3rem">Supports .xlsx, .xls, .csv</p>
+          </div>
+          <div class="add-row-form hidden" id="add-row-form">
+            <div class="section-divider"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Candidate Manually</div>
+            <div class="fg">
+              <div class="form-group"><label class="form-label">Surname <span class="req">*</span></label><input type="text" id="ap-surname" class="form-input" placeholder="e.g. Adeola"/></div>
+              <div class="form-group"><label class="form-label">First Name <span class="req">*</span></label><input type="text" id="ap-firstname" class="form-input" placeholder="e.g. Taiwo"/></div>
+              <div class="form-group"><label class="form-label">Other Names</label><input type="text" id="ap-othername" class="form-input" placeholder="Optional"/></div>
+              <div class="form-group"><label class="form-label">Gender <span class="req">*</span></label><select id="ap-gender" class="form-select"><option value="">Select…</option><option>Male</option><option>Female</option></select></div>
+              <div class="form-group"><label class="form-label">Date of Birth</label><input type="date" id="ap-dob" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Class <span class="req">*</span></label><select id="ap-class" class="form-select"><option value="">Select class…</option><option>Primary 1</option><option>Primary 2</option><option>Primary 3</option><option>Primary 4</option><option>Primary 5</option><option>Primary 6</option><option>JSS 1</option><option>JSS 2</option><option>JSS 3</option><option>SSS 1</option><option>SSS 2</option><option>SSS 3</option></select></div>
+              <div class="form-group full"><label class="form-label">Subject / Exam Category <span class="req">*</span></label><input type="text" id="ap-subject" class="form-input" placeholder="e.g. Mathematics, English Language"/></div>
+            </div>
+            <div style="display:flex;gap:.6rem;justify-content:flex-end">
+              <button class="btn btn-outline btn-sm" onclick="toggleAddRow()">Cancel</button>
+              <button class="btn btn-saffron btn-sm" onclick="addCandidateManually()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Add to List</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>#</th><th>Surname</th><th>First Name</th><th>Other Names</th><th>Gender</th><th>DOB</th><th>Class</th><th>Subject</th><th></th></tr></thead>
+              <tbody id="ap-tbody"><tr><td colspan="9" class="table-empty">No candidates added yet.</td></tr></tbody>
+            </table>
+          </div>
+          <div class="step-foot" style="margin-top:1.2rem">
+            <button class="btn btn-outline" onclick="goBack(2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+            <button class="btn btn-primary" onclick="goNext(4)">Review Application <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+          </div>
+        </div>
+
+        <!-- STEP 4 — REVIEW & PAY -->
+        <div class="fstep" id="step-4">
+          <div class="step-head"><div><span class="step-tag">Step 4 of 4</span><h2>Review &amp; Pay</h2><p>Check all details, then complete payment to submit your registration.</p></div><span class="step-emoji">💳</span></div>
+
+          <div id="review-panel"></div>
+
+          <div class="decl-box">
+            <label class="check-label">
+              <input type="checkbox" id="decl"/>
+              <div class="check-box"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <span>I, the undersigned proprietor, declare that all information provided is accurate, truthful and complete. I confirm the listed candidates are enrolled students eligible to write the Adeota examination.</span>
+            </label>
+          </div>
+
+          <!-- Monnify checkout box -->
+          <div class="pay-checkout">
+            <div class="pay-checkout-inner">
+              <h4>💳 Registration Payment</h4>
+              <p>Pay securely via Monnify to complete your school registration. Accepted: Card, Bank Transfer, USSD.</p>
+              <div class="pay-amount-row">
+                <div><div class="pay-fee-lbl">Amount Due</div><div class="pay-fee-amt" id="checkout-fee-amt">₦5,000</div></div>
+                <div class="pay-secure">🔒 Monnify Secured</div>
+              </div>
+              <div class="pay-methods">
+                <span class="pay-method">💳 Card</span>
+                <span class="pay-method">🏦 Bank Transfer</span>
+                <span class="pay-method">📱 USSD</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-foot">
+            <button class="btn btn-outline" onclick="goBack(3)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+            <button class="btn btn-saffron" id="btn-pay" onclick="startPayment()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <span id="btn-pay-label">Pay ₦5,000 &amp; Submit</span>
+              <div class="spin dark hidden" id="pay-spin"></div>
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /form-steps -->
+
+      <!-- SUCCESS SCREEN -->
+      <div class="success-screen" id="success-screen">
+        <div class="success-icon">🎉</div>
+        <h2>Registration Complete!</h2>
+        <p class="sub">Your school and candidates have been successfully registered and payment confirmed for the <strong>Unite 13 Adeota Examination</strong>.</p>
+        <div class="id-card" id="id-card">
+          <div class="id-card-header">
+            <span>🏫 UNITE 13 ADEOTA</span>
+            <span style="font-size:.74rem;color:var(--navy);opacity:.7">2025/2026</span>
+          </div>
+          <div class="id-card-body">
+            <div class="id-card-row"><span class="id-card-lbl">Proprietor</span><span class="id-card-val" id="id-proprietor">—</span></div>
+            <div class="id-card-row"><span class="id-card-lbl">School</span><span class="id-card-val" id="id-school">—</span></div>
+            <div class="id-card-row"><span class="id-card-lbl">State</span><span class="id-card-val" id="id-state">—</span></div>
+            <div class="id-card-row"><span class="id-card-lbl">Candidates Registered</span><span class="id-card-val" id="id-cands">—</span></div>
+            <div class="id-card-row"><span class="id-card-lbl">Payment Status</span><span class="id-card-val" style="color:#4ade80">✅ PAID</span></div>
+          </div>
+          <div class="id-card-ref">
+            <div class="id-ref-num" id="success-ref">—</div>
+            <div class="id-ref-lbl">Registration Reference Number</div>
+          </div>
+        </div>
+        <div style="color:var(--ink3);font-size:.84rem;max-width:400px;margin:0 auto 1.8rem">Please screenshot or save your reference number. You may be required to present it at the examination centre.</div>
+        <button class="btn btn-primary" onclick="resetForm()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+          Register Another School
+        </button>
+      </div>
+
+    </div><!-- /form-card -->
+  </div>
+</div>
+
+<div style="background:var(--navy);color:rgba(255,255,255,.4);text-align:center;padding:1.5rem;font-size:.8rem">
+  Unite 13 Adeota Examination Portal &nbsp;•&nbsp; 2025/2026 Academic Session &nbsp;•&nbsp; Powered by Firebase &amp; Monnify
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, updateDoc, getDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBbAu27RCUnU2Bd7dUhjpHCQpaV6i_UHDg",
+  authDomain:"modanmic-ai-power-exams.firebaseapp.com",
+  projectId:"modanmic-ai-power-exams",
+  storageBucket:"modanmic-ai-power-exams.firebasestorage.app",
+  messagingSenderId:"592742880638",
+  appId:"1:592742880638:web:ff788ba10a3a6e889e4f2f"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── Monnify configuration — loaded from Firestore portal_config ───
+// Fallback values match the provided .env keys so the form works
+// even before the admin has saved settings for the first time.
+let MONNIFY_API_KEY       = 'MK_TEST_NDS2MBQEUJ';
+let MONNIFY_SECRET_KEY    = 'KLDSLG954JX4VUAN8U3BJ6U0PH1QYFDB';
+let MONNIFY_CONTRACT_CODE = '1210042254';
+let MONNIFY_IS_TEST       = true;   // true = sandbox, false = live
+
+// ── State ─────────────────────────────────────────────────────────
+let candidates       = [];
+let currentStep      = 1;
+let addRowVisible    = false;
+let sdkLoaded        = false;
+let paymentProcessed = false;
+let firestoreDocId   = null;
+let AMOUNT           = 5000; // overridden by Firestore portal_config on load
+
+// ── Load portal config from Firestore ────────────────────────────
+// Reads portal_config/unite13 (public read allowed in Firestore rules).
+// Falls back to hardcoded defaults above if doc is missing or offline.
+(async () => {
+  try {
+    const snap = await getDoc(doc(db, 'portal_config', 'unite13'));
+    if (snap.exists()) {
+      const cfg = snap.data();
+      if (cfg.applicationFee   && !isNaN(cfg.applicationFee))   AMOUNT                = Number(cfg.applicationFee);
+      if (cfg.monnifyApiKey    && cfg.monnifyApiKey.trim())      MONNIFY_API_KEY       = cfg.monnifyApiKey.trim();
+      if (cfg.monnifySecretKey && cfg.monnifySecretKey.trim())   MONNIFY_SECRET_KEY    = cfg.monnifySecretKey.trim();
+      if (cfg.monnifyContractCode && cfg.monnifyContractCode.trim()) MONNIFY_CONTRACT_CODE = cfg.monnifyContractCode.trim();
+      if (typeof cfg.isLive === 'boolean')                       MONNIFY_IS_TEST       = !cfg.isLive;
+    }
+  } catch(e) {
+    console.info('Portal config not found — using default keys/fee.');
+  }
+  // Always update the UI after loading (even if defaults are used)
+  updatePriceDisplay();
+})();
+
+function updatePriceDisplay() {
+  const fmt  = '₦' + AMOUNT.toLocaleString();
+  const feeEl = document.getElementById('checkout-fee-amt');
+  const btnEl = document.getElementById('btn-pay-label');
+  if (feeEl) feeEl.textContent = fmt;
+  if (btnEl && !btnEl.textContent.includes('Loading') && !btnEl.textContent.includes('Saving'))
+    btnEl.textContent = `Pay ${fmt} & Submit`;
+}
+
+// ── Navigation ────────────────────────────────────────────────────
+window.goNext = (n) => { if (!validateStep(currentStep)) return; if (n === 4) buildReview(); goto(n); };
+window.goBack = (n) => goto(n);
+
+function goto(n) {
+  document.querySelectorAll('.fstep').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  currentStep = n;
+  document.getElementById('prog-fill').style.width = (n / 4 * 100) + '%';
+  const names = ['','Proprietor Details','School Information','Candidates','Review & Pay'];
+  document.getElementById('step-label').textContent = `Step ${n} of 4`;
+  document.getElementById('step-name').textContent  = names[n];
+  for (let i = 1; i <= 4; i++) {
+    const ss = document.getElementById('ss-' + i), sn = document.getElementById('ssn-' + i);
+    ss.classList.remove('active','done'); sn.textContent = i;
+    if (i === n) ss.classList.add('active');
+    if (i < n)  { ss.classList.add('done'); sn.innerHTML = '✓'; }
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Validation ────────────────────────────────────────────────────
+function validateStep(step) {
+  if (step === 1) return chk(['p-firstName','p-lastName','p-gender','p-dob','p-phone','p-email','p-address','p-city','p-state']);
+  if (step === 2) return chk(['s-name','s-type','s-ownership','s-phone','s-address','s-city','s-state']);
+  if (step === 3) { if (!candidates.length) { toast('warning','No candidates','Add at least one candidate.'); return false; } return true; }
+  return true;
+}
+function chk(ids) {
+  let ok = true;
+  ids.forEach(id => { const el = document.getElementById(id); if(!el) return; el.classList.remove('err'); if(!el.value.trim()){el.classList.add('err');ok=false;} });
+  if (!ok) toast('warning','Required fields','Please fill in all highlighted fields.');
+  return ok;
+}
+const g = id => (document.getElementById(id)?.value||'').trim();
+
+// ── Candidates ────────────────────────────────────────────────────
+window.toggleAddRow = () => {
+  addRowVisible = !addRowVisible;
+  document.getElementById('add-row-form').classList.toggle('hidden', !addRowVisible);
+  document.getElementById('drop-zone').classList.toggle('hidden', addRowVisible);
+  if (addRowVisible) document.getElementById('ap-surname').focus();
+};
+
+window.addCandidateManually = () => {
+  const surname=g('ap-surname'),firstname=g('ap-firstname'),gender=g('ap-gender'),cls=g('ap-class'),subject=g('ap-subject');
+  if (!surname||!firstname||!gender||!cls||!subject) { toast('warning','Missing fields','Surname, First Name, Gender, Class and Subject are required.'); return; }
+  candidates.push({surname,firstname,othername:g('ap-othername'),gender,dob:g('ap-dob'),class:cls,subject});
+  renderTable();
+  ['ap-surname','ap-firstname','ap-othername','ap-dob','ap-subject'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ap-gender').value=''; document.getElementById('ap-class').value='';
+  toast('success','Candidate added',`${firstname} ${surname} added.`);
+};
+
+window.removeCandidate = i => { candidates.splice(i,1); renderTable(); };
+
+function renderTable() {
+  const tbody = document.getElementById('ap-tbody');
+  document.getElementById('ap-count').textContent = candidates.length + (candidates.length===1?' candidate':' candidates');
+  if (!candidates.length) { tbody.innerHTML='<tr><td colspan="9" class="table-empty">No candidates added yet.</td></tr>'; return; }
+  tbody.innerHTML = candidates.map((c,i) => `
+    <tr>
+      <td style="color:var(--ink4);font-size:.78rem">${i+1}</td>
+      <td><strong>${esc(c.surname)}</strong></td>
+      <td>${esc(c.firstname)}</td>
+      <td style="color:var(--ink3)">${esc(c.othername||'—')}</td>
+      <td>${esc(c.gender)}</td>
+      <td style="font-size:.8rem;color:var(--ink3)">${esc(c.dob||'—')}</td>
+      <td><span style="background:var(--blue-lt);color:var(--blue);padding:2px 8px;border-radius:20px;font-size:.75rem;font-weight:700">${esc(c.class)}</span></td>
+      <td style="font-size:.82rem">${esc(c.subject)}</td>
+      <td><button class="btn-row-del" onclick="removeCandidate(${i})" title="Remove">✕</button></td>
+    </tr>`).join('');
+}
+
+// ── Excel ─────────────────────────────────────────────────────────
+window.handleExcelImport = e => {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(ev.target.result,{type:'binary',cellDates:true});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      let added=0;
+      for(let i=1;i<rows.length;i++){
+        const r=rows[i];
+        const surname=String(r[0]||'').trim(),firstname=String(r[1]||'').trim();
+        if(!surname&&!firstname) continue;
+        let dob=''; try{dob=r[4] instanceof Date?r[4].toISOString().split('T')[0]:String(r[4]||'').trim();}catch(_){}
+        candidates.push({surname,firstname,othername:String(r[2]||'').trim(),gender:String(r[3]||'').trim(),dob,class:String(r[5]||'').trim(),subject:String(r[6]||'').trim()});
+        added++;
+      }
+      renderTable();
+      toast('success',`${added} candidate${added!==1?'s':''} imported`,'From: '+file.name);
+      document.getElementById('drop-zone').classList.add('hidden');
+    } catch(err){ toast('error','Import failed',err.message); }
+  };
+  reader.readAsBinaryString(file); e.target.value='';
+};
+
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)handleExcelImport({target:{files:[f],value:''}});});
+
+window.downloadTemplate = () => {
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([['Surname','First Name','Other Names','Gender','Date of Birth (YYYY-MM-DD)','Class','Subject'],['Adeyemi','Tunde','','Male','2008-03-15','JSS 3','Mathematics'],['Okonkwo','Chioma','Blessing','Female','2009-07-22','SSS 1','English Language']]);
+  ws['!cols']=[14,14,14,8,22,10,20].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws,'Candidates'); XLSX.writeFile(wb,'adeota_candidates_template.xlsx');
+};
+
+// ── Build Review ──────────────────────────────────────────────────
+function buildReview() {
+  const top=candidates.slice(0,5), more=candidates.length-5;
+  document.getElementById('review-panel').innerHTML=`
+    <div class="rv-sec">
+      <div class="rv-sec-title">👤 Proprietor Details</div>
+      <div class="rv-grid">
+        <div class="rv-item"><div class="rv-l">Full Name</div><div class="rv-v">${esc(g('p-firstName'))} ${esc(g('p-middleName'))} ${esc(g('p-lastName'))}</div></div>
+        <div class="rv-item"><div class="rv-l">Gender</div><div class="rv-v">${esc(g('p-gender'))}</div></div>
+        <div class="rv-item"><div class="rv-l">Date of Birth</div><div class="rv-v">${esc(g('p-dob'))}</div></div>
+        <div class="rv-item"><div class="rv-l">Phone</div><div class="rv-v">${esc(g('p-phone'))}</div></div>
+        <div class="rv-item" style="grid-column:1/-1"><div class="rv-l">Email</div><div class="rv-v">${esc(g('p-email'))}</div></div>
+        <div class="rv-item" style="grid-column:1/-1"><div class="rv-l">Residential Address</div><div class="rv-v">${esc(g('p-address'))}, ${esc(g('p-city'))}, ${esc(g('p-state'))}</div></div>
       </div>
     </div>
-
-    <div class="hero-visual">
-      <div class="hero-card-mock">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem">
-          <span style="color:rgba(255,255,255,.7);font-size:.82rem;font-weight:600">Recent Applications</span>
-          <span style="color:var(--saffron);font-size:.76rem;font-weight:700">Live ●</span>
-        </div>
-        <div class="mock-row">
-          <div class="mock-avatar mock-a1"></div>
-          <div class="mock-info"><div class="mock-name">Amara Okafor</div><div class="mock-sub">JAMB 2025 · Lagos</div></div>
-          <span class="mock-badge mock-paid">Paid</span>
-        </div>
-        <div class="mock-row">
-          <div class="mock-avatar mock-a2"></div>
-          <div class="mock-info"><div class="mock-name">Chidi Eze</div><div class="mock-sub">WAEC Prep · Abuja</div></div>
-          <span class="mock-badge mock-pend">Pending</span>
-        </div>
-        <div class="mock-row">
-          <div class="mock-avatar mock-a3"></div>
-          <div class="mock-info"><div class="mock-name">Fatima Bello</div><div class="mock-sub">NECO Prep · Kano</div></div>
-          <span class="mock-badge mock-paid">Paid</span>
-        </div>
-        <div class="hero-mini-stat">
-          <div class="hms"><div class="hms-n">24</div><div class="hms-l">Today</div></div>
-          <div class="hms"><div class="hms-n">₦120k</div><div class="hms-l">Revenue</div></div>
-        </div>
+    <div class="rv-sec">
+      <div class="rv-sec-title">🏫 School Information</div>
+      <div class="rv-grid">
+        <div class="rv-item" style="grid-column:1/-1"><div class="rv-l">School Name</div><div class="rv-v">${esc(g('s-name'))}</div></div>
+        <div class="rv-item"><div class="rv-l">Type</div><div class="rv-v">${esc(g('s-type'))}</div></div>
+        <div class="rv-item"><div class="rv-l">Ownership</div><div class="rv-v">${esc(g('s-ownership'))}</div></div>
+        <div class="rv-item"><div class="rv-l">Phone</div><div class="rv-v">${esc(g('s-phone'))}</div></div>
+        <div class="rv-item"><div class="rv-l">Email</div><div class="rv-v">${esc(g('s-email')||'—')}</div></div>
+        <div class="rv-item" style="grid-column:1/-1"><div class="rv-l">School Address</div><div class="rv-v">${esc(g('s-address'))}, ${esc(g('s-city'))}, ${esc(g('s-state'))}</div></div>
       </div>
     </div>
-  </div>
-</section>
+    <div class="rv-sec">
+      <div class="rv-sec-title">✏️ Candidates (${candidates.length})</div>
+      ${top.map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-size:.86rem">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0">${i+1}</div>
+          <div style="flex:1"><strong>${esc(c.surname)}, ${esc(c.firstname)}</strong>${c.othername?' '+esc(c.othername):''}</div>
+          <div style="color:var(--ink3);font-size:.8rem">${esc(c.gender)}</div>
+          <span style="background:var(--blue-lt);color:var(--blue);padding:2px 7px;border-radius:20px;font-size:.73rem;font-weight:700">${esc(c.class)}</span>
+          <div style="color:var(--ink3);font-size:.8rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.subject)}</div>
+        </div>`).join('')}
+      ${more>0?`<div style="text-align:center;padding:.7rem;font-size:.82rem;color:var(--ink3)">…and <strong>${more}</strong> more candidate${more!==1?'s':''}</div>`:''}
+      <div class="rv-cand-count"><div class="num">${candidates.length}</div><p>Total candidates registered for Adeota Exam</p></div>
+    </div>`;
+}
 
-<!-- ═══ FEATURES ═══ -->
-<section class="features-section" id="features">
-  <div class="section-head">
-    <div class="section-label">Everything you need</div>
-    <h2>Powerful features, simple to use</h2>
-    <p>Everything you need to run professional application processes from start to finish.</p>
-  </div>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feat-icon-wrap fi-amber">🔗</div>
-      <h3>Shareable Form Links</h3>
-      <p>Generate a unique link for your application form. Share it anywhere — WhatsApp, email, social media. Only people with the link can access your form.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feat-icon-wrap fi-teal">📝</div>
-      <h3>Custom Exam Options</h3>
-      <p>Create and manage examination options that applicants select from. JAMB, WAEC, NECO, GCE — whatever you need.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feat-icon-wrap fi-navy">💳</div>
-      <h3>Monnify Payments</h3>
-      <p>Set your application fee and collect payments securely via Monnify. Instant confirmation for both you and the applicant.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feat-icon-wrap fi-blue">📊</div>
-      <h3>Analytics Dashboard</h3>
-      <p>Track total applications, payments received, pending fees, and approval status in real-time with beautiful charts.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feat-icon-wrap fi-green">✅</div>
-      <h3>Application Review</h3>
-      <p>View each applicant's full details — personal info, address, exam choice, and payment status — all in one place.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feat-icon-wrap fi-purple">🔒</div>
-      <h3>Secure Authentication</h3>
-      <p>Firebase-powered sign-up and login for admins. Applicants access forms through your unique shared link only.</p>
-    </div>
-  </div>
-</section>
+// ── Payment: save first, then launch Monnify ──────────────────────
+window.startPayment = async () => {
+  if (!document.getElementById('decl').checked) {
+    toast('warning','Declaration required','Please tick the declaration checkbox first.');
+    return;
+  }
+  const btn=document.getElementById('btn-pay'), spin=document.getElementById('pay-spin'), lbl=document.getElementById('btn-pay-label');
+  btn.disabled=true; spin.classList.remove('hidden'); lbl.textContent='Saving…';
 
-<!-- ═══ HOW IT WORKS ═══ -->
-<section class="how-section" id="how">
-  <div class="section-head">
-    <div class="section-label" style="background:rgba(245,158,11,.15);color:var(--saffron)">Simple process</div>
-    <h2>How it works</h2>
-    <p>Two roles, one seamless flow. Get up and running in minutes.</p>
-  </div>
-  <div class="how-grid">
-    <div>
-      <div class="how-side-label admin">🛡️ For Admins</div>
-      <div class="how-step"><div class="how-num admin">1</div><div class="how-info"><h4>Create your account</h4><p>Sign up with your email and password. Your admin dashboard is ready instantly.</p></div></div>
-      <div class="how-step"><div class="how-num admin">2</div><div class="how-info"><h4>Set up your form</h4><p>Add exam options, set the application fee, and customise interview questions.</p></div></div>
-      <div class="how-step"><div class="how-num admin">3</div><div class="how-info"><h4>Share the link</h4><p>Copy your unique form link and share it with applicants via any channel.</p></div></div>
-      <div class="how-step"><div class="how-num admin">4</div><div class="how-info"><h4>Track everything</h4><p>Monitor applications, payments, and analytics from your dashboard in real time.</p></div></div>
-    </div>
-    <div>
-      <div class="how-side-label appl">👤 For Applicants</div>
-      <div class="how-step"><div class="how-num appl">1</div><div class="how-info"><h4>Open the shared link</h4><p>Click the link shared by the institution. No account needed — just open and go.</p></div></div>
-      <div class="how-step"><div class="how-num appl">2</div><div class="how-info"><h4>Fill the form</h4><p>Enter personal details, address, and select your exam. Review before submitting.</p></div></div>
-      <div class="how-step"><div class="how-num appl">3</div><div class="how-info"><h4>Make payment</h4><p>Pay the application fee securely via Monnify — card, transfer, or USSD.</p></div></div>
-      <div class="how-step"><div class="how-num appl">4</div><div class="how-info"><h4>Get confirmation</h4><p>Receive instant confirmation of your application and payment on screen.</p></div></div>
-    </div>
-  </div>
-</section>
+  // Step 1: write pending doc to Firestore to get the ID
+  const payload={
+    submittedAt:Timestamp.now(), formType:'unite13-adeota',
+    status:'pending_payment', paymentStatus:'pending',
+    proprietor:{firstName:g('p-firstName'),middleName:g('p-middleName'),lastName:g('p-lastName'),gender:g('p-gender'),dob:g('p-dob'),phone:g('p-phone'),altPhone:g('p-altphone'),email:g('p-email'),address:g('p-address'),city:g('p-city'),state:g('p-state')},
+    school:{name:g('s-name'),type:g('s-type'),ownership:g('s-ownership'),yearEst:g('s-year'),regNo:g('s-regno'),phone:g('s-phone'),email:g('s-email'),address:g('s-address'),city:g('s-city'),state:g('s-state'),enrollment:g('s-enrollment'),notes:g('s-notes')},
+    candidates, candidateCount:candidates.length,
+  };
+  try {
+    const ref = await addDoc(collection(db,'adeota_registrations'), payload);
+    firestoreDocId = ref.id;
+  } catch(err) {
+    toast('error','Save failed',err.message);
+    btn.disabled=false; spin.classList.add('hidden'); lbl.textContent=`Pay ₦${AMOUNT.toLocaleString()} & Submit`;
+    return;
+  }
 
-<!-- ═══ CTA ═══ -->
-<section class="cta-section">
-  <h2>Ready to get started?</h2>
-  <p>Join hundreds of institutions managing applications with InterviewPro.</p>
-  <div class="cta-row">
-    <a href="register.html" class="btn btn-primary btn-lg">Create Admin Account</a>
-    <a href="login.html"    class="btn btn-outline btn-lg">Sign In</a>
-  </div>
-</section>
+  // Step 2: launch Monnify
+  lbl.textContent='Loading payment…';
+  paymentProcessed=false;
+  if (sdkLoaded) { launchMonnify(); return; }
+  const script=document.createElement('script');
+  script.src='https://sdk.monnify.com/plugin/monnify.js';
+  script.onload=()=>{sdkLoaded=true;launchMonnify();};
+  script.onerror=()=>{
+    toast('error','Payment SDK failed','Check your internet connection.');
+    btn.disabled=false; spin.classList.add('hidden'); lbl.textContent=`Pay ₦${AMOUNT.toLocaleString()} & Submit`;
+  };
+  document.head.appendChild(script);
+};
 
-<footer class="footer">
-  <p>© 2025 <span>InterviewPro</span> · Powered by Firebase & Monnify · Built for Nigerian institutions</p>
-</footer>
+function launchMonnify() {
+  const btn=document.getElementById('btn-pay'), spin=document.getElementById('pay-spin'), lbl=document.getElementById('btn-pay-label');
+  btn.disabled=false; spin.classList.add('hidden'); lbl.textContent=`Pay ₦${AMOUNT.toLocaleString()} & Submit`;
 
+  MonnifySDK.initialize({
+    amount:             AMOUNT,
+    currency:           'NGN',
+    reference:          `U13-${firestoreDocId.substring(0,8).toUpperCase()}-${Date.now()}`,
+    customerFullName:   `${g('p-firstName')} ${g('p-lastName')}`,
+    customerEmail:      g('p-email')||'noreply@unite13.ng',
+    apiKey:             MONNIFY_API_KEY,
+    contractCode:       MONNIFY_CONTRACT_CODE,
+    paymentDescription: 'Unite 13 Adeota Exam Registration Fee',
+    isTestMode:         MONNIFY_IS_TEST,
+    metadata:{ registrationId:firestoreDocId, school:g('s-name'), platform:'Unite13Adeota' },
+
+    // ── IMPORTANT: onComplete must be a plain synchronous function.
+    // Do NOT use async/await directly here — Monnify will reject it.
+    // Fire Firestore update in background (no await) and call showSuccess immediately.
+    onComplete: function(response) {
+      if (paymentProcessed) return;
+
+      if (response.paymentStatus === 'PAID') {
+        paymentProcessed = true;
+
+        // Fire-and-forget Firestore update — don't block or await inside onComplete
+        updateDoc(doc(db,'adeota_registrations',firestoreDocId), {
+          status:'registered', paymentStatus:'paid',
+          paymentRef:   response.transactionReference,
+          paymentAmount:response.amountPaid,
+          paymentDate:  Timestamp.now(),
+        }).catch(err => console.warn('Firestore update failed:', err.message));
+
+        // Show success immediately — don't wait for Firestore
+        showSuccess(response.transactionReference);
+
+      } else if (response.paymentStatus === 'PENDING') {
+        toast('info','Payment pending','Bank transfer initiated. We will confirm once it clears.',8000);
+
+      } else {
+        // FAILED, CANCELLED, or any other status
+        toast('error','Payment not completed','Please try again or choose a different method.');
+        document.getElementById('btn-pay').disabled = false;
+        document.getElementById('pay-spin').classList.add('hidden');
+        document.getElementById('btn-pay-label').textContent = `Pay ₦${AMOUNT.toLocaleString()} & Submit`;
+      }
+    },
+
+    onClose: function(data) {
+      if (!paymentProcessed) {
+        document.getElementById('btn-pay').disabled=false;
+        document.getElementById('pay-spin').classList.add('hidden');
+        document.getElementById('btn-pay-label').textContent=`Pay ₦${AMOUNT.toLocaleString()} & Submit`;
+        if (data?.paymentStatus!=='PAID') toast('info','Payment cancelled','You can try again when ready.');
+      }
+    }
+  });
+}
+
+// ── Show success screen ───────────────────────────────────────────
+function showSuccess(txRef) {
+  const refCode = 'U13-' + firestoreDocId.substring(0,8).toUpperCase();
+  document.getElementById('id-proprietor').textContent = `${g('p-firstName')} ${g('p-lastName')}`;
+  document.getElementById('id-school').textContent     = g('s-name');
+  document.getElementById('id-state').textContent      = g('s-state');
+  document.getElementById('id-cands').textContent      = candidates.length;
+  document.getElementById('success-ref').textContent   = refCode;
+
+  document.getElementById('form-steps').style.display = 'none';
+  document.getElementById('prog-wrap').style.display  = 'none';
+  document.getElementById('success-screen').classList.add('active');
+
+  for (let i=1;i<=4;i++) {
+    const ss=document.getElementById('ss-'+i), sn=document.getElementById('ssn-'+i);
+    ss.classList.remove('active'); ss.classList.add('done'); sn.innerHTML='✓';
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+  spawnConfetti();
+  toast('success','Registration complete! 🎉',`Ref: ${refCode}`,8000);
+}
+
+// ── Reset form for next submission ────────────────────────────────
+window.resetForm = () => {
+  // Clear all input values and error states
+  document.querySelectorAll('.form-input,.form-select,.form-textarea').forEach(el=>{el.value='';el.classList.remove('err');});
+  document.getElementById('decl').checked=false;
+
+  // Reset state
+  candidates=[]; currentStep=1; addRowVisible=false; paymentProcessed=false; firestoreDocId=null;
+
+  // Reset candidate table
+  renderTable();
+
+  // Reset add-row UI
+  document.getElementById('add-row-form').classList.add('hidden');
+  document.getElementById('drop-zone').classList.remove('hidden');
+
+  // Clear review panel
+  document.getElementById('review-panel').innerHTML='';
+
+  // Restore form UI
+  document.getElementById('form-steps').style.display='';
+  document.getElementById('prog-wrap').style.display='';
+  document.getElementById('success-screen').classList.remove('active');
+
+  // Re-sync price display (AMOUNT may have loaded from Firestore)
+  updatePriceDisplay();
+
+  // Go to step 1 fresh
+  goto(1);
+};
+
+// ── Helpers ───────────────────────────────────────────────────────
+function spawnConfetti() {
+  const box=document.getElementById('confetti-box');
+  const colors=['#f59e0b','#14b8a6','#3b82f6','#22c55e','#a855f7','#f97316'];
+  for(let i=0;i<90;i++){
+    const p=document.createElement('div'); p.className='confetti-piece';
+    const sz=Math.random()*10+5;
+    p.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${colors[~~(Math.random()*colors.length)]};animation-duration:${Math.random()*2+2.5}s;animation-delay:${Math.random()*1.2}s;border-radius:${Math.random()>.5?'50%':'3px'}`;
+    box.appendChild(p);
+  }
+  setTimeout(()=>{box.innerHTML='';},6000);
+}
+
+function toast(type,title,msg='',dur=5000) {
+  const icons={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const wrap=document.getElementById('toast-wrap'); const el=document.createElement('div');
+  el.className=`toast t-${type}`;
+  el.innerHTML=`<div class="t-ico">${icons[type]||'ℹ️'}</div><div class="t-body"><div class="t-title">${title}</div>${msg?`<div class="t-msg">${msg}</div>`:''}</div><button class="t-close" onclick="this.parentElement.remove()">✕</button>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.classList.add('leaving');setTimeout(()=>el.remove(),350);},dur);
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
 </body>
 </html>

@@ -180,7 +180,7 @@
     <!-- PAYMENTS -->
     <div id="tab-payments" class="tab-panel">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.8rem">
-        <div><h2 style="font-size:1.4rem">Payment Records</h2><p class="text-muted" style="font-size:.84rem">All Monnify transactions</p></div>
+        <div><h2 style="font-size:1.4rem">Payment Records</h2><p class="text-muted" style="font-size:.84rem">All Paystack transactions</p></div>
         <div style="background:var(--green-lt);border:1px solid rgba(34,197,94,.2);border-radius:var(--r-sm);padding:.5rem 1.2rem;font-size:.88rem;color:#15803d;font-weight:600">
           Total Revenue: <strong id="total-revenue">₦0</strong>
         </div>
@@ -210,10 +210,10 @@
           <div class="form-group">
             <label class="form-label">Application Fee (₦)</label>
             <div class="input-icon-wrap"><span class="i-icon" style="font-size:.9rem;font-weight:700;color:var(--ink3)">₦</span><input type="number" id="set-fee" class="form-input" placeholder="5000" min="100"/></div>
-            <p class="field-hint">Amount applicants pay via Monnify</p>
+            <p class="field-hint">Amount applicants pay via Paystack</p>
           </div>
-          <div class="form-group"><label class="form-label">Monnify API Key</label><input type="text" id="set-monnify-key" class="form-input" value="MK_TEST_NDS2MBQEUJ"/></div>
-          <div class="form-group"><label class="form-label">Contract Code</label><input type="text" id="set-contract" class="form-input" value="1210042254"/></div>
+          <div class="form-group"><label class="form-label">Paystack Public Key</label><input type="text" id="set-ps-public-key" class="form-input" placeholder="pk_test_…" style="font-family:monospace;font-size:.82rem"/></div>
+          <div class="form-group"><label class="form-label">Paystack Reference</label><input type="text" id="set-ps-ref" class="form-input" placeholder="Your Paystack ref" style="font-family:monospace;font-size:.82rem"/></div>
         </div>
       </div>
     </div>

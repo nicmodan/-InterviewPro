@@ -1,6 +1,7 @@
 ===================================================
 UNITE 13 ADEOTA — SETUP GUIDE
 2025/2026 Academic Session
+(Updated: Paystack Integration + Wallet & Withdrawals)
 ===================================================
 
 FILE STRUCTURE
@@ -9,14 +10,14 @@ NEW FILES (Unite 13 Adeota)
   index.html            Unite 13 Adeota registration form
                         (proprietor details + school info + candidates)
   adeota-admin.html     Admin dashboard — view schools, candidates,
-                        charts, and export data to Excel
+                        charts, export data, wallet & withdrawals
 
 EXISTING FILES (InterviewPro — retained for compatibility)
   login.html            Admin sign-in
   register.html         Admin registration (create admin account)
   dashboard.html        Original InterviewPro admin dashboard
   application-form.html Original applicant form
-  payment.html          Monnify payment page
+  payment.html          Paystack payment page (shared by both products)
   style.css             Shared stylesheet
   app.js                Shared JS utilities
   firebase-config.js    Firebase initialisation (shared)
@@ -37,13 +38,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Admin accounts
+    // Admin accounts (includes bankDetails sub-field)
     match /admins/{adminId} {
       allow read, write: if request.auth != null
                          && request.auth.uid == adminId;
     }
 
-    // Unite 13 portal config (fee, Monnify keys)
+    // Unite 13 portal config (fee, Paystack keys)
     // PUBLIC READ — so index.html can fetch fee without login
     // WRITE restricted to authenticated admins only
     match /portal_config/{docId} {
@@ -55,6 +56,11 @@ service cloud.firestore {
     match /adeota_registrations/{regId} {
       allow create: if true;
       allow read, update, delete: if request.auth != null;
+    }
+
+    // Withdrawals — admin only
+    match /withdrawals/{wdId} {
+      allow create, read, update: if request.auth != null;
     }
 
     // Original InterviewPro collections
@@ -73,40 +79,96 @@ service cloud.firestore {
 
   D) Click "Publish" to save the rules.
 
-  E) Firestore → Indexes → Add composite index (for admin dashboard):
-     Collection: adeota_registrations
-     Fields:     submittedAt (Descending)
-     Click "Create" — takes ~2 minutes to build.
-     (Without this, the dashboard may show an empty list initially)
+  E) Firestore → Indexes → Add the following composite indexes:
+
+     Index 1 (for admin dashboard schools list):
+       Collection: adeota_registrations
+       Fields:     submittedAt (Descending)
+
+     Index 2 (for wallet withdrawal history):
+       Collection: withdrawals
+       Fields:     adminId (Ascending), initiatedAt (Descending)
+
+     Index 3 (for wallet balance calculation):
+       Collection: payments
+       Fields:     adminId (Ascending), status (Ascending)
+
+     Click "Create" for each — each takes ~2 minutes to build.
 
 ===================================================
-STEP 2 — Deploy
-  Option A (Netlify — Recommended):
-    Go to netlify.com/drop
-    Drag and drop this entire folder
-    Done! Site live in ~30 seconds.
+STEP 2 — Paystack Setup
+  Go to: dashboard.paystack.com
 
-  Option B (Firebase Hosting):
-    npm install -g firebase-tools
-    firebase login
-    firebase init hosting  (public dir = this folder, SPA = No)
-    firebase deploy
+  A) Create a Paystack business account (if you don't have one).
+
+  B) Complete business verification to enable Live Mode payouts.
+
+  C) Settings → API Keys & Webhooks:
+     - Copy your PUBLIC KEY  (starts with pk_test_ or pk_live_)
+     - Copy your SECRET KEY  (starts with sk_test_ or sk_live_)
+     - Set Webhook URL to:   https://yoursite.com/api/paystack/webhook
+     - Copy the Webhook Secret (shown after saving webhook URL)
+
+  D) For withdrawals (Transfer feature):
+     - Settings → Transfers → Enable OTP on Transfers if desired
+     - Make sure your Paystack balance is funded before withdrawing
+
+  NOTE: Use TEST keys while in development.
+        Use LIVE keys only after business verification and going live.
 
 ===================================================
-STEP 3 — Create your Admin Account
+STEP 3 — Deploy
+  Option A (Render.com — Recommended for full backend):
+    render.yaml is included — push to GitHub and connect on Render.
+    The Express server handles /api/paystack/* proxy routes.
+
+  Option B (Netlify — Static only):
+    Drag and drop the public/ folder.
+    The /api/paystack/* routes will NOT work — you must use
+    Netlify Functions or a separate backend for payment proxy.
+
+===================================================
+STEP 4 — Create your Admin Account
   1. Open your deployed site
   2. Go to /register.html
   3. Fill in your details → Create Account
-  4. You are redirected to the InterviewPro dashboard (login.html)
-  5. To access the Unite 13 Adeota admin panel, navigate to:
-     https://yoursite.com/adeota-admin.html
+  4. Navigate to: https://yoursite.com/adeota-admin.html
 
 ===================================================
-STEP 4 — Share the Registration Form
+STEP 5 — Configure Paystack Keys in Admin Dashboard
+  1. Open adeota-admin.html → Settings tab
+  2. Under "Payment & Paystack Configuration":
+     - Enter Registration Fee (₦)
+     - Paste your Paystack Public Key
+     - Paste your Paystack Secret Key
+     - Paste your Webhook Secret
+     - Set Payment Mode to Test (for testing) or Live (for production)
+  3. Click "Save Settings"
+
+  These values are stored in Firestore (portal_config/unite13)
+  and read automatically by the payment page and wallet.
+
+===================================================
+STEP 6 — Set Up Wallet & Withdrawal
+  1. In adeota-admin.html → Wallet & Withdrawals tab
+  2. Under "Bank Account Details":
+     - Select your bank from the dropdown
+     - Enter your 10-digit account number
+     - Wait for account name to auto-verify via Paystack
+     - Click "Save Bank Details"
+  3. Bank details are saved in Firestore under your admin profile.
+  4. To withdraw:
+     - Enter the amount (minimum ₦100)
+     - Add a narration/reason
+     - Click "Withdraw to Bank Account"
+     - Paystack will process the transfer to your saved account.
+
+===================================================
+STEP 7 — Share the Registration Form
   Share the index.html URL with school proprietors:
   https://yoursite.com/index.html
 
-  OR copy it from the Settings tab in adeota-admin.html
+  OR copy it from the Settings tab in adeota-admin.html.
 
   Proprietors do NOT need an account.
   They open the link, fill in the 4-step form, and submit.
@@ -125,8 +187,7 @@ ADEOTA ADMIN DASHBOARD (adeota-admin.html)
     • Full table of all registered schools
     • Search by school name or proprietor name
     • Filter by state
-    • Click "View →" to see full school + proprietor details
-      and the complete candidate list for that school
+    • Click "View →" to see full details + candidate list
     • Export to Excel button
 
   All Candidates Tab:
@@ -134,37 +195,30 @@ ADEOTA ADMIN DASHBOARD (adeota-admin.html)
     • Filter by name, class, or gender
     • Export to Excel button
 
+  Wallet & Withdrawals Tab (NEW):
+    • Available balance (computed from payments - withdrawals)
+    • Total withdrawn amount
+    • Pending transfers count
+    • Bank Account Details — set and verify your account via Paystack
+    • Withdraw Funds — initiate transfer to your bank account
+    • Withdrawal History — full log of all past withdrawals
+
   Settings Tab:
     • Edit portal title and instructions
     • Set registration deadline
+    • Configure Paystack Public Key, Secret Key, Webhook Secret
+    • Set Test/Live payment mode
     • Copy the registration form URL
 
-  Sidebar → "Export All Data":
-    • Downloads a single Excel file with two sheets:
-      Sheet 1 = Schools, Sheet 2 = Candidates
-
 ===================================================
-REGISTRATION FORM FEATURES (index.html)
-  Step 1 — Proprietor Details:
-    Full name, gender, DOB, NIN, phone (×2), email, address, state
-
-  Step 2 — School Information:
-    Name, type, ownership, year est., reg. no., phone, email,
-    full address, enrollment, notes
-
-  Step 3 — Candidates:
-    • Import via Excel (.xlsx / .xls / .csv)
-      Excel columns: Surname | First Name | Other Names |
-                     Gender | Date of Birth | Class | Subject
-    • Download blank template button (auto-generates correct format)
-    • Add manually one-by-one with live table preview
-    • Remove individual candidates with ✕ button
-
-  Step 4 — Review & Submit:
-    • Full summary of all entered data
-    • Declaration checkbox
-    • Saves to Firestore collection: adeota_registrations
-    • Displays unique reference code (e.g. U13-ABC12345)
-    • Confetti celebration on success ✨
-
+PAYSTACK PAYMENT FLOW
+  1. School submits registration form (index.html)
+  2. Form saves to Firestore, redirects to payment.html
+  3. payment.html loads Paystack public key from Firestore
+  4. Admin clicks "Pay Now" → Paystack popup opens
+  5. School completes payment on Paystack popup
+  6. popup callback triggers server-side verification
+     (POST /api/paystack/verify/:reference)
+  7. On success → Firestore record updated to paid
+  8. Success screen shown with reference code
 ===================================================

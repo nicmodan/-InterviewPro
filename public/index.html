@@ -411,19 +411,20 @@
             </label>
           </div>
 
-          <!-- Monnify checkout box -->
+          <!-- Paystack checkout box -->
           <div class="pay-checkout">
             <div class="pay-checkout-inner">
               <h4>💳 Registration Payment</h4>
-              <p>Pay securely via Monnify to complete your school registration. Accepted: Card, Bank Transfer, USSD.</p>
+              <p>Pay securely via Paystack to complete your school registration. Accepted: Card, Bank Transfer, USSD.</p>
               <div class="pay-amount-row">
                 <div><div class="pay-fee-lbl">Amount Due</div><div class="pay-fee-amt" id="checkout-fee-amt">₦5,000</div></div>
-                <div class="pay-secure">🔒 Monnify Secured</div>
+                <div class="pay-secure">🔒 Paystack Secured</div>
               </div>
               <div class="pay-methods">
                 <span class="pay-method">💳 Card</span>
                 <span class="pay-method">🏦 Bank Transfer</span>
                 <span class="pay-method">📱 USSD</span>
+                
               </div>
             </div>
           </div>
@@ -474,7 +475,7 @@
 </div>
 
 <div style="background:var(--navy);color:rgba(255,255,255,.4);text-align:center;padding:1.5rem;font-size:.8rem">
-  Unite 13 Adeota Examination Portal &nbsp;•&nbsp; 2025/2026 Academic Session &nbsp;•&nbsp; Powered by Firebase &amp; Monnify
+  Unite 13 Adeota Examination Portal &nbsp;•&nbsp; 2025/2026 Academic Session &nbsp;•&nbsp; Powered by Firebase &amp; Paystack
 </div>
 
 <script type="module">
@@ -492,41 +493,33 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// ── Monnify configuration — loaded from Firestore portal_config ───
-// Fallback values match the provided .env keys so the form works
-// even before the admin has saved settings for the first time.
-let MONNIFY_API_KEY       = 'MK_TEST_NDS2MBQEUJ';
-let MONNIFY_SECRET_KEY    = 'KLDSLG954JX4VUAN8U3BJ6U0PH1QYFDB';
-let MONNIFY_CONTRACT_CODE = '1210042254';
-let MONNIFY_IS_TEST       = true;   // true = sandbox, false = live
+// ── Paystack configuration — loaded from Firestore portal_config ─────
+// Public key and merchant ID are read from Firestore so the admin
+// can update them from the admin panel without redeploying.
+let PAYSTACK_PUBLIC_KEY = '';
 
 // ── State ─────────────────────────────────────────────────────────
 let candidates       = [];
 let currentStep      = 1;
 let addRowVisible    = false;
-let sdkLoaded        = false;
 let paymentProcessed = false;
 let firestoreDocId   = null;
 let AMOUNT           = 5000; // overridden by Firestore portal_config on load
 
 // ── Load portal config from Firestore ────────────────────────────
 // Reads portal_config/unite13 (public read allowed in Firestore rules).
-// Falls back to hardcoded defaults above if doc is missing or offline.
+// Falls back to hardcoded defaults if doc is missing or offline.
 (async () => {
   try {
     const snap = await getDoc(doc(db, 'portal_config', 'unite13'));
     if (snap.exists()) {
       const cfg = snap.data();
-      if (cfg.applicationFee   && !isNaN(cfg.applicationFee))   AMOUNT                = Number(cfg.applicationFee);
-      if (cfg.monnifyApiKey    && cfg.monnifyApiKey.trim())      MONNIFY_API_KEY       = cfg.monnifyApiKey.trim();
-      if (cfg.monnifySecretKey && cfg.monnifySecretKey.trim())   MONNIFY_SECRET_KEY    = cfg.monnifySecretKey.trim();
-      if (cfg.monnifyContractCode && cfg.monnifyContractCode.trim()) MONNIFY_CONTRACT_CODE = cfg.monnifyContractCode.trim();
-      if (typeof cfg.isLive === 'boolean')                       MONNIFY_IS_TEST       = !cfg.isLive;
+      if (cfg.applicationFee && !isNaN(cfg.applicationFee)) AMOUNT            = Number(cfg.applicationFee);
+            if (cfg.paystackPublicKey && cfg.paystackPublicKey.trim()) PAYSTACK_PUBLIC_KEY = cfg.paystackPublicKey.trim();
     }
   } catch(e) {
-    console.info('Portal config not found — using default keys/fee.');
+    console.info('Portal config not found — using defaults.');
   }
-  // Always update the UI after loading (even if defaults are used)
   updatePriceDisplay();
 })();
 
@@ -692,7 +685,9 @@ function buildReview() {
     </div>`;
 }
 
-// ── Payment: save first, then launch Monnify ──────────────────────
+// ── Payment: save to Firestore, then redirect to Paystack via payment.html ──
+// Paystack uses a popup inline flow — we redirect to payment.html which handles it.
+// Firestore doc ID, then send the user to payment.html which calls the
 window.startPayment = async () => {
   if (!document.getElementById('decl').checked) {
     toast('warning','Declaration required','Please tick the declaration checkbox first.');
@@ -701,10 +696,11 @@ window.startPayment = async () => {
   const btn=document.getElementById('btn-pay'), spin=document.getElementById('pay-spin'), lbl=document.getElementById('btn-pay-label');
   btn.disabled=true; spin.classList.remove('hidden'); lbl.textContent='Saving…';
 
-  // Step 1: write pending doc to Firestore to get the ID
+  // Step 1: write pending registration doc to Firestore to get an ID
   const payload={
     submittedAt:Timestamp.now(), formType:'unite13-adeota',
     status:'pending_payment', paymentStatus:'pending',
+    paymentGateway:'paystack',
     proprietor:{firstName:g('p-firstName'),middleName:g('p-middleName'),lastName:g('p-lastName'),gender:g('p-gender'),dob:g('p-dob'),phone:g('p-phone'),altPhone:g('p-altphone'),email:g('p-email'),address:g('p-address'),city:g('p-city'),state:g('p-state')},
     school:{name:g('s-name'),type:g('s-type'),ownership:g('s-ownership'),yearEst:g('s-year'),regNo:g('s-regno'),phone:g('s-phone'),email:g('s-email'),address:g('s-address'),city:g('s-city'),state:g('s-state'),enrollment:g('s-enrollment'),notes:g('s-notes')},
     candidates, candidateCount:candidates.length,
@@ -718,78 +714,23 @@ window.startPayment = async () => {
     return;
   }
 
-  // Step 2: launch Monnify
-  lbl.textContent='Loading payment…';
-  paymentProcessed=false;
-  if (sdkLoaded) { launchMonnify(); return; }
-  const script=document.createElement('script');
-  script.src='https://sdk.monnify.com/plugin/monnify.js';
-  script.onload=()=>{sdkLoaded=true;launchMonnify();};
-  script.onerror=()=>{
-    toast('error','Payment SDK failed','Check your internet connection.');
-    btn.disabled=false; spin.classList.add('hidden'); lbl.textContent=`Pay ₦${AMOUNT.toLocaleString()} & Submit`;
-  };
-  document.head.appendChild(script);
+  // Step 2: redirect to payment.html with all required params
+  // payment.html uses Paystack inline popup. On payment, Firestore is updated.
+  lbl.textContent='Redirecting to payment…';
+  const name  = `${g('p-firstName')} ${g('p-lastName')}`.trim();
+  const email = g('p-email') || 'noreply@unite13.ng';
+
+  // adminId here is the portal/form identifier, not a user UID.
+  // We pass 'unite13' so payment.html can tag the payment record correctly.
+  const payUrl = `payment.html`
+    + `?appId=${encodeURIComponent(firestoreDocId)}`
+    + `&adminId=unite13`
+    + `&name=${encodeURIComponent(name)}`
+    + `&email=${encodeURIComponent(email)}`
+    + `&amount=${AMOUNT}`;
+
+  setTimeout(() => { window.location.href = payUrl; }, 400);
 };
-
-function launchMonnify() {
-  const btn=document.getElementById('btn-pay'), spin=document.getElementById('pay-spin'), lbl=document.getElementById('btn-pay-label');
-  btn.disabled=false; spin.classList.add('hidden'); lbl.textContent=`Pay ₦${AMOUNT.toLocaleString()} & Submit`;
-
-  MonnifySDK.initialize({
-    amount:             AMOUNT,
-    currency:           'NGN',
-    reference:          `U13-${firestoreDocId.substring(0,8).toUpperCase()}-${Date.now()}`,
-    customerFullName:   `${g('p-firstName')} ${g('p-lastName')}`,
-    customerEmail:      g('p-email')||'noreply@unite13.ng',
-    apiKey:             MONNIFY_API_KEY,
-    contractCode:       MONNIFY_CONTRACT_CODE,
-    paymentDescription: 'Unite 13 Adeota Exam Registration Fee',
-    isTestMode:         MONNIFY_IS_TEST,
-    metadata:{ registrationId:firestoreDocId, school:g('s-name'), platform:'Unite13Adeota' },
-
-    // ── IMPORTANT: onComplete must be a plain synchronous function.
-    // Do NOT use async/await directly here — Monnify will reject it.
-    // Fire Firestore update in background (no await) and call showSuccess immediately.
-    onComplete: function(response) {
-      if (paymentProcessed) return;
-
-      if (response.paymentStatus === 'PAID') {
-        paymentProcessed = true;
-
-        // Fire-and-forget Firestore update — don't block or await inside onComplete
-        updateDoc(doc(db,'adeota_registrations',firestoreDocId), {
-          status:'registered', paymentStatus:'paid',
-          paymentRef:   response.transactionReference,
-          paymentAmount:response.amountPaid,
-          paymentDate:  Timestamp.now(),
-        }).catch(err => console.warn('Firestore update failed:', err.message));
-
-        // Show success immediately — don't wait for Firestore
-        showSuccess(response.transactionReference);
-
-      } else if (response.paymentStatus === 'PENDING') {
-        toast('info','Payment pending','Bank transfer initiated. We will confirm once it clears.',8000);
-
-      } else {
-        // FAILED, CANCELLED, or any other status
-        toast('error','Payment not completed','Please try again or choose a different method.');
-        document.getElementById('btn-pay').disabled = false;
-        document.getElementById('pay-spin').classList.add('hidden');
-        document.getElementById('btn-pay-label').textContent = `Pay ₦${AMOUNT.toLocaleString()} & Submit`;
-      }
-    },
-
-    onClose: function(data) {
-      if (!paymentProcessed) {
-        document.getElementById('btn-pay').disabled=false;
-        document.getElementById('pay-spin').classList.add('hidden');
-        document.getElementById('btn-pay-label').textContent=`Pay ₦${AMOUNT.toLocaleString()} & Submit`;
-        if (data?.paymentStatus!=='PAID') toast('info','Payment cancelled','You can try again when ready.');
-      }
-    }
-  });
-}
 
 // ── Show success screen ───────────────────────────────────────────
 function showSuccess(txRef) {

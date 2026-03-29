@@ -3,19 +3,16 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Complete Payment — InterviewPro</title>
+  <title>Complete Payment — Unite 13</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
     body { background:var(--navy); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem }
     .pay-wrap { width:100%; max-width:480px }
-
     .pay-logo { display:flex; align-items:center; gap:.7rem; justify-content:center; margin-bottom:2rem }
     .pay-logo-mark { width:40px; height:40px; background:var(--saffron); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Sora',sans-serif; font-weight:800; color:var(--navy); font-size:1rem }
     .pay-logo span  { font-family:'Sora',sans-serif; font-weight:700; color:#fff; font-size:1.1rem }
-
     .pay-card { background:var(--white); border-radius:var(--r-xl); overflow:hidden; box-shadow:var(--sh-xl); animation:cardIn .4s cubic-bezier(.34,1.3,.64,1) }
     @keyframes cardIn { from{opacity:0;transform:translateY(20px) scale(.97)} to{opacity:1;transform:none} }
-
     .pay-card-top { background:linear-gradient(135deg,var(--navy2) 0%,var(--navy3) 100%); padding:2rem; color:#fff; position:relative; overflow:hidden }
     .pay-card-top::after { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='20' cy='20' r='10'/%3E%3C/g%3E%3C/svg%3E"); pointer-events:none }
     .pay-top-inner { position:relative; z-index:1 }
@@ -26,24 +23,18 @@
     .pay-fee-lbl { font-size:.78rem; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.06em }
     .pay-fee-amt { font-family:'Sora',sans-serif; font-size:3rem; font-weight:800; color:var(--saffron); line-height:1 }
     .pay-secure-badge { background:rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.3); color:#4ade80; padding:4px 10px; border-radius:20px; font-size:.73rem; font-weight:700; display:flex; align-items:center; gap:.3rem }
-
     .pay-card-body { padding:1.8rem }
     .pay-info-row { display:flex; justify-content:space-between; align-items:center; padding:.6rem 0; border-bottom:1px solid var(--line); font-size:.87rem }
     .pay-info-row:last-of-type { border-bottom:none }
     .pir-lbl { color:var(--ink3) }
     .pir-val { font-weight:600 }
-
     .btn-pay-now { background:var(--saffron); color:var(--navy); padding:1rem; border-radius:var(--r); font-weight:800; font-size:1rem; width:100%; display:flex; align-items:center; justify-content:center; gap:.6rem; margin-top:1.4rem; transition:all var(--tr); box-shadow:0 4px 20px rgba(245,158,11,.35) }
     .btn-pay-now:hover:not(:disabled) { background:var(--saf2); transform:translateY(-2px); box-shadow:0 8px 28px rgba(245,158,11,.4) }
     .btn-pay-now:disabled { opacity:.65; cursor:not-allowed }
-
-    /* Invalid page state */
     .invalid-page { text-align:center; padding:3rem 2rem }
     .invalid-page .ip-icon { font-size:3.5rem; margin-bottom:1rem }
     .invalid-page h2 { font-size:1.5rem; margin-bottom:.5rem }
     .invalid-page p  { color:var(--ink3); margin-bottom:1.5rem }
-
-    /* Success state */
     .success-inner { text-align:center; padding:2.5rem }
     .cm-svg    { width:72px; height:72px; display:block; margin:0 auto 1.5rem }
     .cm-circle { stroke:var(--green); stroke-width:2; stroke-dasharray:160; stroke-dashoffset:160; animation:circleDraw .6s ease .2s forwards }
@@ -54,13 +45,17 @@
     .success-inner p  { color:var(--ink3); margin-bottom:.6rem; font-size:.92rem }
     .ref-box { background:var(--line2); border-radius:var(--r-sm); padding:.7rem 1rem; font-size:.83rem; font-weight:700; color:var(--ink2); word-break:break-all; margin:.8rem 0 1.5rem; letter-spacing:.02em }
     .ref-label { font-size:.76rem; color:var(--ink4); margin-bottom:.3rem }
-
     .confetti-box { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0 }
     .confetti-piece { position:absolute; top:-10px; border-radius:2px; animation:cFall linear forwards }
     @keyframes cFall { to { transform:translateY(105vh) rotate(720deg); opacity:0 } }
-
     .pay-footer { text-align:center; margin-top:1rem; font-size:.8rem; color:rgba(255,255,255,.4) }
     .pay-footer strong { color:rgba(255,255,255,.65) }
+    .ps-badge { display:inline-flex; align-items:center; gap:.35rem; font-size:.72rem; font-weight:700; color:#00c3f7; background:rgba(0,195,247,.12); border:1px solid rgba(0,195,247,.3); padding:3px 9px; border-radius:20px }
+    .ps-badge::before { content:''; width:8px; height:8px; background:#00c3f7; border-radius:50%; animation:pulse 1.4s infinite }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+    .verifying-state { text-align:center; padding:2.5rem }
+    .verify-spin { width:48px; height:48px; border-radius:50%; border:4px solid var(--line); border-top-color:var(--saffron); animation:spinR .8s linear infinite; margin:0 auto 1rem }
+    @keyframes spinR { to { transform:rotate(360deg) } }
   </style>
 </head>
 <body>
@@ -69,17 +64,26 @@
 
 <div class="pay-wrap">
   <div class="pay-logo">
-    <div class="pay-logo-mark">IP</div>
-    <span>InterviewPro</span>
+    <div class="pay-logo-mark">U13</div>
+    <span>Unite 13 Adeota</span>
   </div>
 
-  <!-- INVALID STATE (shown if URL params missing) -->
+  <!-- INVALID STATE -->
   <div class="pay-card hidden" id="invalid-card">
     <div class="invalid-page">
       <div class="ip-icon">⛔</div>
       <h2>Invalid Payment Link</h2>
-      <p>This payment link is missing required details. Please go back to the application form and submit again.</p>
+      <p>This payment link is missing required details. Please go back and submit the form again.</p>
       <a href="index.html" class="btn btn-primary">← Back to Home</a>
+    </div>
+  </div>
+
+  <!-- VERIFYING STATE -->
+  <div class="pay-card hidden" id="verifying-card">
+    <div class="verifying-state">
+      <div class="verify-spin"></div>
+      <h2 style="font-size:1.3rem;margin-bottom:.4rem">Verifying payment…</h2>
+      <p style="color:var(--ink3);font-size:.88rem">Please wait while we confirm your payment with Paystack.</p>
     </div>
   </div>
 
@@ -87,7 +91,7 @@
   <div class="pay-card hidden" id="pay-card">
     <div class="pay-card-top">
       <div class="pay-top-inner">
-        <div class="pay-applicant">Application Fee Payment</div>
+        <div class="pay-applicant">Registration Fee Payment</div>
         <div class="pay-name"      id="pay-name">—</div>
         <div class="pay-email-txt" id="pay-email">—</div>
         <div class="pay-amount-row">
@@ -95,11 +99,10 @@
             <div class="pay-fee-lbl">Amount Due</div>
             <div class="pay-fee-amt" id="pay-amount">₦0</div>
           </div>
-          <div class="pay-secure-badge">🔒 Monnify Secured</div>
+          <div class="pay-secure-badge">🔒 Paystack Secured</div>
         </div>
       </div>
     </div>
-
     <div class="pay-card-body">
       <div class="pay-info-row">
         <span class="pir-lbl">Application ID</span>
@@ -107,22 +110,20 @@
       </div>
       <div class="pay-info-row">
         <span class="pir-lbl">Accepted Methods</span>
-        <span class="pir-val">Card · Transfer · USSD</span>
+        <span class="pir-val">Card · Bank Transfer · USSD</span>
       </div>
       <div class="pay-info-row">
         <span class="pir-lbl">Payment Mode</span>
         <span class="pir-val" id="pay-mode-badge" style="color:var(--saffron)">Test Mode</span>
       </div>
-
       <button class="btn-pay-now" id="btn-pay" onclick="startPayment()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        <span id="btn-pay-text">Pay Now with Monnify</span>
+        <span id="btn-pay-text">Pay Now with Paystack</span>
         <div class="spin dark hidden" id="pay-spin"></div>
       </button>
-
       <p style="text-align:center;margin-top:1rem;font-size:.8rem;color:var(--ink4)">
-        🔒 Your payment is SSL-encrypted and secure.<br/>
-        Powered by Monnify Payment Gateway.
+        🔒 SSL-encrypted and secure.<br/>
+        Powered by <strong>Paystack</strong> Payment Gateway.
       </p>
     </div>
   </div>
@@ -135,264 +136,232 @@
         <path class="cm-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
       </svg>
       <h2>Payment Successful! 🎉</h2>
-      <p>Your application has been received and your payment confirmed. We'll be in touch soon.</p>
+      <p>Your registration has been received and payment confirmed.</p>
       <p class="ref-label">Transaction Reference</p>
       <div class="ref-box" id="ref-box">—</div>
       <a href="index.html" class="btn btn-primary" style="justify-content:center;margin-bottom:.8rem">← Back to Home</a>
-      <p style="font-size:.79rem;color:var(--ink4)">Keep your reference number safe for tracking purposes.</p>
+      <p style="font-size:.79rem;color:var(--ink4)">Keep your reference number safe for tracking.</p>
     </div>
   </div>
 </div>
 
 <div class="pay-footer">
-  <strong>InterviewPro</strong> · Secure payments via <strong>Monnify</strong>
+  <strong>Unite 13 Adeota</strong> · Secure payments via <strong>Paystack</strong>
 </div>
+
+<!-- Paystack inline JS SDK -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
 
 <script type="module">
 // ============================================================
-// payment.html — Monnify SDK Integration
-// Fixed issues:
-//   1. Added fallback amount (5000) when parseInt fails
-//   2. Guard flag prevents double Firestore writes if
-//      onComplete fires more than once (known Monnify quirk)
-//   3. Invalid page shown when required URL params missing
-//   4. Monnify SDK only loaded once (prevents duplicate scripts)
-//   5. Test/Live mode badge shown to user
+// payment.html — Paystack Inline + Server-side Verify
+//
+// HOW IT WORKS:
+//   1. On load, fetch Paystack public key from portal_config
+//   2. User clicks "Pay Now" → Paystack popup opens (inline)
+//   3. On popup success → server verifies reference via secret key
+//   4. On verified → Firestore updated, success screen shown
 // ============================================================
+
 import { db } from './firebase-config.js';
 import {
   doc, getDoc, updateDoc, addDoc, collection, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ── Read & validate URL params ───────────────────────────────
-const params  = new URLSearchParams(window.location.search);
-const appId   = params.get('appId')   || '';
-const adminId = params.get('adminId') || '';
-const name    = decodeURIComponent(params.get('name')  || '');
-const email   = decodeURIComponent(params.get('email') || '');
-// FIX #1: Robust amount parsing with proper fallback
-const rawAmt  = params.get('amount');
-const amount  = (rawAmt && !isNaN(parseInt(rawAmt, 10))) ? parseInt(rawAmt, 10) : 5000;
+const params   = new URLSearchParams(window.location.search);
+const appId    = params.get('appId')    || '';
+const adminId  = params.get('adminId')  || '';
+const name     = decodeURIComponent(params.get('name')  || '');
+const email    = decodeURIComponent(params.get('email') || '');
+const rawAmt   = params.get('amount');
+const amountNGN = (rawAmt && !isNaN(parseInt(rawAmt,10))) ? parseInt(rawAmt,10) : 5000;
+const amountKobo = amountNGN * 100;
 
-// If critical params are missing, show invalid state
-if (!appId || !adminId) {
-  document.getElementById('invalid-card').classList.remove('hidden');
-} else {
-  // Populate UI
-  document.getElementById('pay-name').textContent   = name || 'Applicant';
-  document.getElementById('pay-email').textContent  = email || '';
-  document.getElementById('pay-amount').textContent = '₦' + amount.toLocaleString();
-  document.getElementById('pay-appid').textContent  = appId;
-  document.getElementById('pay-card').classList.remove('hidden');
+// Check if returning from Paystack redirect (fallback flow)
+const returnRef = params.get('reference') || params.get('trxref') || '';
+
+let PAYSTACK_PUBLIC_KEY  = 'pk_test_03c277c8eae6a4b35649aef3d055ddcde9ba7a8d';
+let PAYSTACK_SECRET_KEY  = 'sk_test_65e77925cd08422a134e71bda840044fa0c4895a';
+let IS_LIVE = false;
+
+// ── Load config from Firestore portal_config ──────────────────
+async function loadConfig() {
+  try {
+    const snap = await getDoc(doc(db, 'portal_config', 'unite13'));
+    if (snap.exists()) {
+      const cfg = snap.data();
+      PAYSTACK_PUBLIC_KEY = cfg.paystackPublicKey  || '';
+      PAYSTACK_SECRET_KEY = cfg.paystackSecretKey  || '';
+      IS_LIVE             = cfg.isLive             || false;
+    }
+  } catch(e) { console.warn('Could not load portal_config:', e); }
 }
 
-// ── FIX #2: Double-fire guard ────────────────────────────────
-// Monnify can fire onComplete more than once in rare cases.
-// This flag ensures we only write to Firestore once.
-let paymentProcessed = false;
+async function init() {
+  await loadConfig();
 
-// Track whether SDK script has been injected already
-let sdkLoaded = false;
-
-// ── Start payment ─────────────────────────────────────────────
-window.startPayment = function() {
-  const btn  = document.getElementById('btn-pay');
-  const text = document.getElementById('btn-pay-text');
-  const spin = document.getElementById('pay-spin');
-
-  btn.disabled = true;
-  text.textContent = 'Loading Monnify…';
-  spin.classList.remove('hidden');
-
-  // FIX #3: Only inject the SDK script once
-  if (sdkLoaded) {
-    launchMonnify();
+  if (returnRef) {
+    // Returning from Paystack redirect — verify server-side
+    showCard('verifying-card');
+    await verifyAndFinish(returnRef);
     return;
   }
 
-  const script   = document.createElement('script');
-  script.src     = 'https://sdk.monnify.com/plugin/monnify.js';
-  script.onload  = () => { sdkLoaded = true; launchMonnify(); };
-  script.onerror = () => {
-    toast('error', 'Payment SDK failed to load',
-      'Please check your internet connection and try again.');
-    resetBtn();
-  };
-  document.head.appendChild(script);
-};
+  if (!appId || !adminId) {
+    showCard('invalid-card');
+    return;
+  }
 
-// ── Launch Monnify modal ──────────────────────────────────────
-function launchMonnify() {
-  // Always reset the button first so user can retry if modal is closed
-  resetBtn();
-
-  // Generate a unique reference for THIS payment attempt
-  // Format: APP-{appId_short}-{timestamp}
-  const reference = `APP-${appId.substring(0, 8).toUpperCase()}-${Date.now()}`;
-
-  MonnifySDK.initialize({
-    amount,
-    currency:            'NGN',
-    reference,
-    customerFullName:    name     || 'Applicant',
-    customerEmail:       email    || 'applicant@interviewpro.ng',
-    apiKey:              'MK_TEST_NDS2MBQEUJ',
-    contractCode:        '1210042254',
-    paymentDescription:  'Interview Application Fee',
-    isTestMode:          true,  // ← Change to false for live payments
-    metadata: {
-      applicationId: appId,
-      adminId:       adminId,
-      platform:      'InterviewPro'
-    },
-
-    // Called when the Monnify modal is loading
-    onLoadStart: () => {
-      const btn = document.getElementById('btn-pay');
-      if (btn) btn.disabled = true;
-    },
-
-    // Called when the modal is fully loaded and visible
-    onLoadComplete: () => {
-      resetBtn(); // Re-enable in case user needs to close and retry
-    },
-
-    // Called when payment is attempted (success OR fail)
-    onComplete: async (response) => {
-      console.log('[Monnify] onComplete fired:', response);
-
-      // FIX #2: Prevent double processing
-      if (paymentProcessed) {
-        console.warn('[Monnify] onComplete fired again — ignoring duplicate.');
-        return;
-      }
-
-      if (response.paymentStatus === 'PAID') {
-        paymentProcessed = true; // Lock immediately to prevent race
-
-        try {
-          // ── Update the application document ──────────────────
-          await updateDoc(doc(db, 'applications', appId), {
-            paymentStatus:  'paid',
-            paymentRef:     response.transactionReference,
-            paymentAmount:  response.amountPaid,
-            paymentDate:    Timestamp.now()
-          });
-
-          // ── Log a separate payment record ─────────────────────
-          await addDoc(collection(db, 'payments'), {
-            adminId,
-            applicationId:  appId,
-            applicantName:  name || 'Applicant',
-            applicantEmail: email || '',
-            amount:         response.amountPaid,
-            reference:      response.transactionReference,
-            status:         'paid',
-            paidAt:         Timestamp.now()
-          });
-
-          // ── Show success UI ────────────────────────────────────
-          document.getElementById('pay-card').style.display    = 'none';
-          document.getElementById('success-card').classList.remove('hidden');
-          document.getElementById('ref-box').textContent       = response.transactionReference;
-          spawnConfetti();
-          toast('success', 'Payment confirmed! 🎉',
-            'Your application is complete.', 8000);
-
-        } catch (firestoreErr) {
-          // Payment succeeded but Firestore write failed
-          // Show success anyway — support can reconcile manually
-          console.error('[Firestore] Write failed after payment:', firestoreErr);
-          document.getElementById('pay-card').style.display    = 'none';
-          document.getElementById('success-card').classList.remove('hidden');
-          document.getElementById('ref-box').textContent       = response.transactionReference;
-          toast('warning',
-            'Payment received — please screenshot this page',
-            'Payment was successful but our records update failed. ' +
-            'Please save your reference: ' + response.transactionReference,
-            15000);
-        }
-
-      } else if (response.paymentStatus === 'PENDING') {
-        // Bank transfer initiated but not yet confirmed
-        toast('info', 'Payment pending',
-          'Your bank transfer has been initiated. ' +
-          'We\'ll confirm once it clears (usually a few minutes).', 8000);
-
-      } else {
-        // FAILED, CANCELLED, etc.
-        toast('warning', 'Payment not completed',
-          'Status: ' + (response.paymentStatus || 'unknown') +
-          '. Please try again.', 6000);
-        resetBtn();
-      }
-    },
-
-    // Called when the user closes the Monnify modal
-    onClose: (data) => {
-      console.log('[Monnify] Modal closed by user:', data);
-      if (!paymentProcessed) {
-        resetBtn();
-        // Only show toast if they haven't already paid
-        toast('info', 'Payment window closed',
-          'Your form was saved. Click "Pay Now" to complete your payment.', 5000);
-      }
-    }
-  });
+  // Normal load
+  document.getElementById('pay-name').textContent   = name  || 'Applicant';
+  document.getElementById('pay-email').textContent  = email || '';
+  document.getElementById('pay-amount').textContent = '₦' + amountNGN.toLocaleString();
+  document.getElementById('pay-appid').textContent  = appId;
+  document.getElementById('pay-mode-badge').textContent = IS_LIVE ? 'Live Mode' : 'Test Mode';
+  document.getElementById('pay-mode-badge').style.color = IS_LIVE ? 'var(--green)' : 'var(--saffron)';
+  showCard('pay-card');
 }
 
-// ── Reset button to default state ─────────────────────────────
-function resetBtn() {
+init();
+
+// ── Start Paystack payment (inline popup) ─────────────────────
+window.startPayment = async function() {
+  if (!PAYSTACK_PUBLIC_KEY) {
+    toast('error', 'Payment not configured', 'Admin has not set up Paystack keys yet.');
+    return;
+  }
+
   const btn  = document.getElementById('btn-pay');
   const text = document.getElementById('btn-pay-text');
   const spin = document.getElementById('pay-spin');
-  if (!btn) return;
+  btn.disabled     = true;
+  text.textContent = 'Opening Paystack…';
+  spin.classList.remove('hidden');
+
+  const reference = `U13-${appId.substring(0,8).toUpperCase()}-${Date.now()}`;
+
+  // Log pending payment
+  try {
+    await addDoc(collection(db, 'payments'), {
+      adminId, applicationId: appId,
+      applicantName: name || 'Applicant', applicantEmail: email || '',
+      amount: amountNGN, reference, status: 'pending',
+      gateway: 'paystack', initiatedAt: Timestamp.now(),
+    });
+  } catch(e) { console.warn('Failed to log pending payment:', e); }
+
+  // Reset button immediately — Paystack popup takes over
   btn.disabled     = false;
-  text.textContent = 'Pay Now with Monnify';
+  text.textContent = 'Pay Now with Paystack';
   spin.classList.add('hidden');
+
+  // NOTE: callback_url and callback are mutually exclusive in Paystack inline SDK.
+  // Using callback_url causes "Attribute callback must be a valid function" error.
+  // We use the inline callback only; the redirect fallback (returnRef) handles
+  // cases where the popup is blocked or the user refreshes.
+  const handler = PaystackPop.setup({
+    key:      PAYSTACK_PUBLIC_KEY,
+    email:    email || 'noemail@example.com',
+    amount:   amountKobo,
+    currency: 'NGN',
+    ref:      reference,
+    metadata: {
+      custom_fields: [
+        { display_name: 'Application ID', variable_name: 'application_id', value: appId },
+        { display_name: 'Applicant Name', variable_name: 'applicant_name', value: name },
+      ]
+    },
+    onClose: function() {
+      toast('info', 'Payment cancelled', 'Click "Pay Now" to try again.', 5000);
+    },
+    callback: function(response) {
+      showCard('verifying-card');
+      verifyAndFinish(response.reference);
+    }
+  });
+  handler.openIframe();
+};
+
+// ── Verify payment server-side then update Firestore ──────────
+async function verifyAndFinish(reference) {
+  try {
+    const res  = await fetch(`/api/paystack/verify/${encodeURIComponent(reference)}?secretKey=${encodeURIComponent(PAYSTACK_SECRET_KEY)}`);
+    const data = await res.json();
+
+    if (data.data?.status === 'success') {
+      const isAdeota    = (adminId === 'unite13');
+      const colName     = isAdeota ? 'adeota_registrations' : 'applications';
+      const paidAmount  = (data.data.amount || amountKobo) / 100;
+
+      try {
+        if (appId) {
+          await updateDoc(doc(db, colName, appId), {
+            status: 'registered', paymentStatus: 'paid',
+            paymentRef: reference, paymentAmount: paidAmount,
+            paymentDate: Timestamp.now(), paymentGateway: 'paystack',
+          });
+          await addDoc(collection(db, 'payments'), {
+            adminId, applicationId: appId,
+            applicantName: name || 'Applicant', applicantEmail: email || '',
+            amount: paidAmount, reference,
+            status: 'paid', gateway: 'paystack', paidAt: Timestamp.now(),
+          });
+        }
+      } catch(fsErr) { console.error('Firestore write failed:', fsErr); }
+
+      document.getElementById('ref-box').textContent = reference;
+      showCard('success-card');
+      spawnConfetti();
+      toast('success', 'Payment confirmed! 🎉', 'Your registration is complete.', 8000);
+
+    } else {
+      showCard('pay-card');
+      document.getElementById('pay-name').textContent   = name  || 'Applicant';
+      document.getElementById('pay-email').textContent  = email || '';
+      document.getElementById('pay-amount').textContent = '₦' + amountNGN.toLocaleString();
+      document.getElementById('pay-appid').textContent  = appId;
+      toast('warning', 'Payment not confirmed',
+        `Status: ${data.data?.status || 'unknown'}. Please try again or contact support.`, 7000);
+    }
+  } catch(err) {
+    console.error('Verify error:', err);
+    showCard('pay-card');
+    document.getElementById('pay-name').textContent   = name  || 'Applicant';
+    document.getElementById('pay-email').textContent  = email || '';
+    document.getElementById('pay-amount').textContent = '₦' + amountNGN.toLocaleString();
+    document.getElementById('pay-appid').textContent  = appId;
+    toast('error', 'Verification failed', 'Could not verify payment. Contact support with your reference.', 8000);
+  }
 }
 
-// ── Confetti animation ─────────────────────────────────────────
+function showCard(id) {
+  ['invalid-card','pay-card','verifying-card','success-card'].forEach(c => {
+    document.getElementById(c).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+}
+
 function spawnConfetti() {
   const box    = document.getElementById('confetti-box');
-  const colors = ['#f59e0b','#14b8a6','#3b82f6','#22c55e','#a855f7','#ec4899','#f97316'];
+  const colors = ['#2ed06e','#f59e0b','#14b8a6','#3b82f6','#a855f7','#ec4899','#f97316'];
   for (let i = 0; i < 90; i++) {
     const p    = document.createElement('div');
     p.className = 'confetti-piece';
     const sz   = Math.random() * 10 + 6;
-    p.style.cssText = `
-      left:${Math.random() * 100}%;
-      width:${sz}px; height:${sz}px;
-      background:${colors[Math.floor(Math.random() * colors.length)]};
-      opacity:${Math.random() * .8 + .2};
-      animation-duration:${Math.random() * 2 + 2}s;
-      animation-delay:${Math.random() * 1.2}s;
-      transform:rotate(${Math.random() * 360}deg);
-      border-radius:${Math.random() > .5 ? '50%' : '2px'};
-    `;
+    p.style.cssText = `left:${Math.random()*100}%;width:${sz}px;height:${sz}px;background:${colors[Math.floor(Math.random()*colors.length)]};opacity:${Math.random()*.8+.2};animation-duration:${Math.random()*2+2}s;animation-delay:${Math.random()*1.2}s;transform:rotate(${Math.random()*360}deg);border-radius:${Math.random()>.5?'50%':'2px'};`;
     box.appendChild(p);
   }
   setTimeout(() => { box.innerHTML = ''; }, 6000);
 }
 
-// ── Toast notification ─────────────────────────────────────────
-function toast(type, title, msg = '', dur = 4500) {
+function toast(type, title, msg='', dur=4500) {
   const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
   const wrap  = document.getElementById('toast-wrap');
   const el    = document.createElement('div');
   el.className = `toast t-${type}`;
-  el.innerHTML = `
-    <div class="t-ico">${icons[type] || 'ℹ️'}</div>
-    <div class="t-body">
-      <div class="t-title">${title}</div>
-      ${msg ? `<div class="t-msg">${msg}</div>` : ''}
-    </div>
-    <button class="t-close" onclick="this.parentElement.remove()">✕</button>`;
+  el.innerHTML = `<div class="t-ico">${icons[type]||'ℹ️'}</div><div class="t-body"><div class="t-title">${title}</div>${msg?`<div class="t-msg">${msg}</div>`:''}</div><button class="t-close" onclick="this.parentElement.remove()">✕</button>`;
   wrap.appendChild(el);
-  setTimeout(() => {
-    el.classList.add('leaving');
-    setTimeout(() => el.remove(), 350);
-  }, dur);
+  setTimeout(() => { el.classList.add('leaving'); setTimeout(() => el.remove(), 350); }, dur);
 }
 </script>
 </body>

@@ -1,14 +1,15 @@
 {
   "name": "gods-celebrities",
   "version": "1.0.0",
-  "description": "Official website for God's Celebrities",
+  "description": "Unite 13 Adeota — Paystack payment integration with admin wallet & withdrawals",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "build": "echo 'No build step required'"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
   },
   "engines": {
     "node": ">=16.0.0"

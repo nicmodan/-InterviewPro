@@ -65,7 +65,7 @@
 <div class="pay-wrap">
   <div class="pay-logo">
     <div class="pay-logo-mark">U13</div>
-    <span>NAPPS UNIT 13 COMMON ENTRANCE 2026</span>
+    <span>Unite 13 Adeota</span>
   </div>
 
   <!-- INVALID STATE -->
@@ -114,7 +114,7 @@
       </div>
       <div class="pay-info-row">
         <span class="pir-lbl">Payment Mode</span>
-        <span class="pir-val" id="pay-mode-badge" style="color:var(--green)">Live Mode</span>
+        <span class="pir-val" id="pay-mode-badge" style="color:var(--saffron)">Test Mode</span>
       </div>
       <button class="btn-pay-now" id="btn-pay" onclick="startPayment()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -146,7 +146,7 @@
 </div>
 
 <div class="pay-footer">
-  <strong>NAPPS UNIT 13 COMMON ENTRANCE 2026</strong> · Secure payments via <strong>Paystack</strong>
+  <strong>Unite 13 Adeota</strong> · Secure payments via <strong>Paystack</strong>
 </div>
 
 <!-- Paystack inline JS SDK -->
@@ -180,9 +180,9 @@ const amountKobo = amountNGN * 100;
 // Check if returning from Paystack redirect (fallback flow)
 const returnRef = params.get('reference') || params.get('trxref') || '';
 
-let PAYSTACK_PUBLIC_KEY  = 'pk_live_9b8113a7d54efae144b00f773bb8ed131d976ecd';
-let PAYSTACK_SECRET_KEY  = 'sk_live_35a8e0276cb9e901e2124afd3c7bc4b5e33c3b88';
-let IS_LIVE = true;
+let PAYSTACK_PUBLIC_KEY  = 'pk_test_03c277c8eae6a4b35649aef3d055ddcde9ba7a8d';
+let PAYSTACK_SECRET_KEY  = 'sk_test_65e77925cd08422a134e71bda840044fa0c4895a';
+let IS_LIVE              = false;
 
 // ── Load config from Firestore portal_config ──────────────────
 async function loadConfig() {
@@ -192,7 +192,7 @@ async function loadConfig() {
       const cfg = snap.data();
       PAYSTACK_PUBLIC_KEY = cfg.paystackPublicKey  || '';
       PAYSTACK_SECRET_KEY = cfg.paystackSecretKey  || '';
-      IS_LIVE             = cfg.isLive !== undefined ? cfg.isLive : true;
+      IS_LIVE             = cfg.isLive             || false;
     }
   } catch(e) { console.warn('Could not load portal_config:', e); }
 }
@@ -239,13 +239,13 @@ window.startPayment = async function() {
   spin.classList.remove('hidden');
 
   const reference = `U13-${appId.substring(0,8).toUpperCase()}-${Date.now()}`;
+  const baseUrl   = window.location.href.split('?')[0];
+  const callbackUrl = `${baseUrl}?appId=${encodeURIComponent(appId)}&adminId=${encodeURIComponent(adminId)}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&amount=${amountNGN}&reference=${reference}`;
 
   // Log pending payment
   try {
     await addDoc(collection(db, 'payments'), {
-      portalId: 'napps_unit13',
-      adminId: 'napps_unit13',
-      applicationId: appId,
+      adminId, applicationId: appId,
       applicantName: name || 'Applicant', applicantEmail: email || '',
       amount: amountNGN, reference, status: 'pending',
       gateway: 'paystack', initiatedAt: Timestamp.now(),
@@ -257,16 +257,13 @@ window.startPayment = async function() {
   text.textContent = 'Pay Now with Paystack';
   spin.classList.add('hidden');
 
-  // NOTE: callback_url and callback are mutually exclusive in Paystack inline SDK.
-  // Using callback_url causes "Attribute callback must be a valid function" error.
-  // We use the inline callback only; the redirect fallback (returnRef) handles
-  // cases where the popup is blocked or the user refreshes.
   const handler = PaystackPop.setup({
-    key:      PAYSTACK_PUBLIC_KEY,
-    email:    email || 'noemail@example.com',
-    amount:   amountKobo,
-    currency: 'NGN',
-    ref:      reference,
+    key:       PAYSTACK_PUBLIC_KEY,
+    email:     email || 'noemail@example.com',
+    amount:    amountKobo,
+    currency:  'NGN',
+    ref:       reference,
+    callback_url: callbackUrl,
     metadata: {
       custom_fields: [
         { display_name: 'Application ID', variable_name: 'application_id', value: appId },
@@ -276,9 +273,9 @@ window.startPayment = async function() {
     onClose: function() {
       toast('info', 'Payment cancelled', 'Click "Pay Now" to try again.', 5000);
     },
-    callback: function(response) {
+    callback: async function(response) {
       showCard('verifying-card');
-      verifyAndFinish(response.reference);
+      await verifyAndFinish(response.reference);
     }
   });
   handler.openIframe();
@@ -291,21 +288,19 @@ async function verifyAndFinish(reference) {
     const data = await res.json();
 
     if (data.data?.status === 'success') {
+      const isAdeota    = (adminId === 'unite13');
+      const colName     = isAdeota ? 'adeota_registrations' : 'applications';
       const paidAmount  = (data.data.amount || amountKobo) / 100;
 
       try {
         if (appId) {
-          // Always update napps_unit13_registrations
-          await updateDoc(doc(db, 'napps_unit13_registrations', appId), {
+          await updateDoc(doc(db, colName, appId), {
             status: 'registered', paymentStatus: 'paid',
             paymentRef: reference, paymentAmount: paidAmount,
             paymentDate: Timestamp.now(), paymentGateway: 'paystack',
           });
-          // Save payment record tagged with portal identifier so admin wallet can read it
           await addDoc(collection(db, 'payments'), {
-            portalId: 'napps_unit13',        // portal-level tag for wallet queries
-            adminId: 'napps_unit13',         // consistent string tag (not a UID)
-            applicationId: appId,
+            adminId, applicationId: appId,
             applicantName: name || 'Applicant', applicantEmail: email || '',
             amount: paidAmount, reference,
             status: 'paid', gateway: 'paystack', paidAt: Timestamp.now(),

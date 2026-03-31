@@ -270,11 +270,119 @@ ul { list-style:none }
 @media(max-width:900px) { .chart-grid { grid-template-columns:1fr } }
 
 /* ── Responsive helpers ──────────────────────────── */
-@media(max-width:768px) {
+/* Hamburger button for mobile admin nav */
+.nav-hamburger { display:none; align-items:center;justify-content:center; width:38px;height:38px; border-radius:8px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; cursor:pointer; flex-shrink:0 }
+.nav-hamburger:hover { background:rgba(255,255,255,.15) }
+.nav-hamburger svg { width:18px; height:18px }
+
+/* Mobile nav drawer */
+.nav-mobile-drawer { display:none; position:fixed; top:62px; left:0; right:0; background:var(--navy2); border-bottom:2px solid rgba(245,158,11,.3); z-index:499; padding:.75rem; box-shadow:0 8px 24px rgba(0,0,0,.4) }
+.nav-mobile-drawer .nav-link { color:rgba(255,255,255,.7); border-radius:8px; padding:.65rem 1rem; font-size:.88rem }
+.nav-mobile-drawer .nav-link.active { color:#fff; background:rgba(255,255,255,.12) }
+.nav-mobile-drawer .nav-link:hover { color:#fff; background:rgba(255,255,255,.08) }
+
+@media(max-width:900px) {
   .dash-nav-links { display:none }
+  .nav-hamburger { display:flex }
   .stat-grid { grid-template-columns:1fr 1fr }
+  .brand-name { font-size:.85rem }
 }
-@media(max-width:480px) {
+@media(max-width:600px) {
   .dash-nav { padding:0 1rem }
   .brand-name { display:none }
+  .nav-right .btn { display:none }
+  .nav-right { gap:.5rem }
+  .brand-tag { display:none }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAPPS UNIT 13 — Professional enhancements
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Improved form inputs ── */
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--saffron);
+  box-shadow: 0 0 0 3px rgba(245,158,11,.15);
+}
+
+/* ── Better buttons ── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--saffron) 0%, var(--saf2) 100%);
+  box-shadow: 0 2px 8px rgba(245,158,11,.35);
+  transition: all .2s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(245,158,11,.45);
+}
+.btn-primary:active { transform: translateY(0) }
+
+/* ── Stat cards polished ── */
+.stat-card {
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(11,17,32,.12);
+}
+
+/* ── Table improvements ── */
+.data-table tr:hover td { background: var(--saf-xlt) }
+.cand-mini tr:hover td { background: rgba(245,158,11,.04) }
+
+/* ── Sidebar link danger state ── */
+.sb-link-danger:hover { background: #fee2e2 !important; color: #dc2626 !important }
+
+/* ── Page transitions ── */
+.tab-panel { animation: fadeIn .2s ease }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+/* ── Better badges ── */
+.nav-badge {
+  animation: pulse-badge 2.5s ease-in-out infinite;
+}
+@keyframes pulse-badge {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,.3) }
+  50% { box-shadow: 0 0 0 4px rgba(245,158,11,.1) }
+}
+
+/* ── Professional footer ── */
+.site-footer {
+  background: var(--navy);
+  color: rgba(255,255,255,.35);
+  text-align: center;
+  padding: 1.2rem 2rem;
+  font-size: .78rem;
+  letter-spacing: .03em;
+}
+
+/* ── Candidate table horizontal scroll on mobile ── */
+@media(max-width:700px) {
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch }
+  .data-table { min-width: 720px }
+}
+
+/* ── Admin overview stat grid mobile ── */
+@media(max-width:480px) {
+  .stat-grid { grid-template-columns: 1fr }
+  .hero-stat { flex-direction: column; gap: 1rem; text-align: center }
+}
+
+/* ── Better modal overlay ── */
+#reset-modal {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ── Nav title wrap fix ── */
+.dash-nav-brand {
+  min-width: 0;
+  flex-shrink: 1;
+}
+.brand-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
 }

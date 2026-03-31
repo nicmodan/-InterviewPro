@@ -75,46 +75,88 @@ app.post('/api/paystack/webhook', express.raw({ type: 'application/json' }), (re
 
 // ── Paystack: Initiate Withdrawal (Transfer) ─────────────────────────────────
 // Creates a transfer recipient then initiates a transfer to the admin's bank account.
-app.post('/api/paystack/withdraw', async (req, res) => {
-  const { secretKey, amount, accountNumber, bankCode, accountName, reason } = req.body;
-  if (!secretKey || !amount || !accountNumber || !bankCode) {
-    return res.status(400).json({ error: 'Missing required fields' });
+// ── Paystack: Transfer (Single Transfer) ─────────────────────────────────────
+// Implements the Paystack Single Transfer flow per docs:
+// https://paystack.com/docs/transfers/single-transfers/
+//
+//   Step 1 — Create transfer recipient (NUBAN).
+//             Paystack deduplicates: a duplicate account number returns the
+//             existing recipient_code, so this is safe to call every time.
+//             If recipientCode is already saved, skip Step 1 entirely.
+//
+//   Step 2 — Initiate transfer from Paystack balance.
+//             Always pass a `reference` so failed transfers can be retried
+//             with the same reference to avoid double-crediting.
+//
+//   Response statuses to expect (data.data.status):
+//     pending  — transfer queued, await webhook for final status
+//     otp      — OTP required; disable OTP in Paystack Dashboard > Preferences
+//     success  — test mode only (no real processing in sandbox)
+//     failed   — transfer could not be completed
+app.post('/api/paystack/transfer', async (req, res) => {
+  const {
+    secretKey, amount, accountNumber, bankCode, accountName,
+    reason, reference, recipientCode: existingCode,
+  } = req.body;
+
+  if (!secretKey || !amount) {
+    return res.status(400).json({ error: 'Missing required fields: secretKey, amount' });
   }
+
   try {
-    // Step 1: Create transfer recipient
-    const recipientRes = await fetch('https://api.paystack.co/transferrecipient', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${secretKey}` },
-      body: JSON.stringify({
-        type: 'nuban', currency: 'NGN',
-        account_number: accountNumber,
-        bank_code:      bankCode,
-        name:           accountName || 'Admin',
-      }),
-    });
-    const recipient = await recipientRes.json();
-    if (!recipient.status) {
-      return res.status(400).json({ error: 'Failed to create recipient', detail: recipient.message });
+    let recipientCode = existingCode || null;
+    let recipientData = null;
+
+    // ── Step 1: Create / retrieve transfer recipient ──────────────────────────
+    if (!recipientCode) {
+      if (!accountNumber || !bankCode) {
+        return res.status(400).json({ error: 'Missing accountNumber or bankCode for new recipient' });
+      }
+      const recipientRes = await fetch('https://api.paystack.co/transferrecipient', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${secretKey}` },
+        body: JSON.stringify({
+          type:           'nuban',
+          currency:       'NGN',
+          account_number: accountNumber,
+          bank_code:      bankCode,
+          name:           accountName || 'Admin',
+        }),
+      });
+      const recipient = await recipientRes.json();
+      if (!recipient.status) {
+        return res.status(400).json({ error: 'Failed to create transfer recipient', detail: recipient.message });
+      }
+      recipientCode = recipient.data.recipient_code;
+      recipientData = recipient.data;
     }
 
-    const recipientCode = recipient.data.recipient_code;
+    // ── Step 2: Initiate transfer ─────────────────────────────────────────────
+    const transferPayload = {
+      source:    'balance',
+      amount:    Math.round(amount * 100),   // Paystack expects kobo
+      recipient: recipientCode,
+      reason:    reason || 'Admin Withdrawal',
+    };
+    // Always include reference for idempotency — allows safe retries
+    if (reference) transferPayload.reference = reference;
 
-    // Step 2: Initiate transfer
     const transferRes = await fetch('https://api.paystack.co/transfer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${secretKey}` },
-      body: JSON.stringify({
-        source:    'balance',
-        amount:    amount * 100,   // Paystack uses kobo
-        recipient: recipientCode,
-        reason:    reason || 'Admin Withdrawal',
-      }),
+      body: JSON.stringify(transferPayload),
     });
     const transfer = await transferRes.json();
-    return res.status(transferRes.status).json(transfer);
+
+    // Always return recipientCode so client can persist it
+    return res.status(transferRes.status).json({
+      ...transfer,
+      recipientCode,
+      recipientData,
+    });
   } catch (err) {
-    console.error('[Paystack withdraw] error:', err);
-    return res.status(502).json({ error: 'Withdrawal failed', detail: err.message });
+    console.error('[Paystack transfer] error:', err);
+    return res.status(502).json({ error: 'Transfer failed', detail: err.message });
   }
 });
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Dashboard — Unite 13 Adeota</title>
+  <title>Admin Dashboard — NAPPS UNIT 13 COMMON ENTRANCE 2026</title>
   <link rel="stylesheet" href="style.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -191,9 +191,11 @@
 <!-- NAV -->
 <nav class="dash-nav" id="main-nav" style="display:none">
   <div class="dash-nav-brand">
-    <div class="nav-logo">U13</div>
-    <span class="brand-name">Unite 13 Adeota</span>
-    <span class="brand-tag">Admin</span>
+    <div class="nav-logo" style="font-size:.78rem">N13</div>
+    <div>
+      <span class="brand-name" style="display:block;font-size:.88rem;line-height:1.1">NAPPS UNIT 13 COMMON ENTRANCE 2026</span>
+      <span class="brand-tag">Admin Dashboard</span>
+    </div>
   </div>
   <div class="dash-nav-links">
     <div class="nav-link active" onclick="switchTab('overview')">
@@ -212,6 +214,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Settings
     </div>
   </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
   <div class="nav-right">
     <a href="index.html" target="_blank" style="display:flex;align-items:center;gap:.4rem;padding:.4rem .85rem;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.75);font-size:.8rem;font-weight:600;text-decoration:none;transition:all var(--tr)" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -222,6 +227,25 @@
     <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.25)" onclick="doLogout()">Sign Out</button>
   </div>
 </nav>
+
+<!-- Mobile nav drawer -->
+<div class="nav-mobile-drawer" id="nav-mobile-drawer">
+  <div class="nav-link active" id="mob-overview" onclick="switchTab('overview');closeMobileNav()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Overview
+  </div>
+  <div class="nav-link" id="mob-schools" onclick="switchTab('schools');closeMobileNav()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Schools
+  </div>
+  <div class="nav-link" id="mob-candidates" onclick="switchTab('candidates');closeMobileNav()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Candidates
+  </div>
+  <div class="nav-link" id="mob-wallet" onclick="switchTab('wallet');closeMobileNav()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/></svg>Wallet
+  </div>
+  <div class="nav-link" id="mob-settings" onclick="switchTab('settings');closeMobileNav()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Settings
+  </div>
+</div>
 
 <!-- LAYOUT -->
 <div class="dash-layout" id="dash-layout" style="display:none">
@@ -242,13 +266,17 @@
       <div class="sb-divider"></div>
       <div class="sb-section">Admin</div>
       <div class="sb-link" onclick="switchTab('wallet')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/></svg>Wallet &amp; Withdrawal
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/></svg>Wallet &amp; Transfers
       </div>
       <div class="sb-link" onclick="switchTab('settings')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Settings
       </div>
       <div class="sb-link" onclick="exportAllData()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export All Data
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-link sb-link-danger" onclick="confirmResetRegistrations()" style="color:#ef4444">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>Reset Registrations
       </div>
     </div>
   </aside>
@@ -261,7 +289,7 @@
 
       <div class="hero-stat">
         <div class="hero-stat-main">
-          <h3>🏫 Unite 13 Adeota — Registration Overview</h3>
+          <h3>🏫 NAPPS UNIT 13 COMMON ENTRANCE 2026 — Registration Overview</h3>
           <p>2025/2026 Academic Session · Real-time submission data</p>
         </div>
         <div class="hero-stat-nums">
@@ -408,7 +436,7 @@
       <div class="settings-grid">
         <div class="card">
           <h3 style="font-size:1rem;margin-bottom:1.2rem">Portal Details</h3>
-          <div class="form-group"><label class="form-label">Portal / Session Title</label><input type="text" id="set-title" class="form-input" placeholder="e.g. Unite 13 Adeota 2025/2026"/></div>
+          <div class="form-group"><label class="form-label">Portal / Session Title</label><input type="text" id="set-title" class="form-input" placeholder="e.g. NAPPS UNIT 13 COMMON ENTRANCE 2026 2025/2026"/></div>
           <div class="form-group"><label class="form-label">Instructions for Proprietors</label><textarea id="set-desc" class="form-textarea" rows="3" placeholder="Instructions shown on the registration form…"></textarea></div>
           <div class="form-group"><label class="form-label">Registration Deadline</label><input type="date" id="set-deadline" class="form-input"/></div>
         </div>
@@ -442,21 +470,21 @@
             </div>
             <div class="form-group">
               <label class="form-label">Paystack Public Key</label>
-              <input type="text" id="set-ps-public-key" class="form-input" placeholder="pk_test_…" style="font-family:monospace;font-size:.82rem"/>
-              <p class="field-hint">Starts with pk_test_ or pk_live_</p>
+              <input type="text" id="set-ps-public-key" class="form-input" placeholder="pk_live_…" style="font-family:monospace;font-size:.82rem"/>
+              <p class="field-hint">Your live public key starts with pk_live_</p>
             </div>
             <div class="form-group">
               <label class="form-label">Paystack Secret Key</label>
-              <input type="password" id="set-ps-secret-key" class="form-input" placeholder="sk_test_…" style="font-family:monospace;font-size:.82rem"/>
-              <p class="field-hint">Starts with sk_test_ or sk_live_ — never exposed to browser</p>
+              <input type="password" id="set-ps-secret-key" class="form-input" placeholder="sk_live_…" style="font-family:monospace;font-size:.82rem"/>
+              <p class="field-hint">Your live secret key starts with sk_live_ — never exposed to browser</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:.5rem">
             <div class="form-group">
               <label class="form-label">Payment Mode</label>
               <select id="set-ps-live" class="form-select">
+                <option value="true" selected>🚀 Live Mode (real payments)</option>
                 <option value="false">🧪 Test Mode (no real charges)</option>
-                <option value="true">🚀 Live Mode (real payments)</option>
               </select>
               <p class="field-hint">Use test keys in Test Mode, live keys in Live Mode</p>
             </div>
@@ -466,9 +494,9 @@
               <p class="field-hint">From Paystack dashboard → Settings → Webhooks</p>
             </div>
           </div>
-          <div style="background:var(--saf-lt);border:1px solid rgba(245,158,11,.3);border-radius:var(--r-sm);padding:.8rem 1rem;font-size:.8rem;color:var(--saf2);display:flex;align-items:flex-start;gap:.5rem">
-            <span>⚠️</span>
-            <span>Test mode uses Paystack sandbox — no real money is charged. Use Paystack test cards from <strong>paystack.com/docs/payments/test-payments</strong>. Switch to Live Mode only after completing Paystack business verification.</span>
+          <div style="background:var(--green-lt);border:1px solid rgba(34,197,94,.3);border-radius:var(--r-sm);padding:.8rem 1rem;font-size:.8rem;color:#15803d;display:flex;align-items:flex-start;gap:.5rem">
+            <span>✅</span>
+            <span>Live mode is active — real payments will be charged. Ensure your live keys from <strong>dashboard.paystack.com → Settings → API Keys</strong> are entered above. Your Paystack business must be verified for live keys to work.</span>
           </div>
         </div>
       </div>
@@ -480,8 +508,8 @@
     <div id="tab-wallet" class="tab-panel">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.8rem">
         <div>
-          <h2 style="font-size:1.4rem">Wallet &amp; Withdrawals</h2>
-          <p class="text-muted" style="font-size:.84rem">Manage your bank account and withdraw your Paystack balance.</p>
+          <h2 style="font-size:1.4rem">Wallet &amp; Transfers</h2>
+          <p class="text-muted" style="font-size:.84rem">Manage your bank account and send Paystack transfers from your balance.</p>
         </div>
         <button class="btn btn-primary" onclick="refreshWalletBalance()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:.4rem"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -499,7 +527,7 @@
         <div class="stat-card c-blue">
           <div class="stat-icon">📤</div>
           <div class="stat-num" id="wallet-total-withdrawn">—</div>
-          <div class="stat-lbl">Total Withdrawn</div>
+          <div class="stat-lbl">Total Transferred</div>
         </div>
         <div class="stat-card c-amber">
           <div class="stat-icon">⏳</div>
@@ -512,62 +540,95 @@
 
         <!-- Bank Account Settings -->
         <div class="card">
-          <h3 style="font-size:1rem;margin-bottom:1.2rem">🏦 Bank Account Details</h3>
-          <p style="font-size:.82rem;color:var(--ink3);margin-bottom:1.2rem">This account will receive all withdrawal transfers. Enter your account number and select your bank — the account name will be detected automatically.</p>
-          <div class="form-group">
-            <label class="form-label">Bank Name</label>
-            <select id="wallet-bank-code" class="form-select" onchange="resolveAccountName()">
-              <option value="">Select your bank…</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Account Number</label>
-            <input type="text" id="wallet-account-number" class="form-input" placeholder="0123456789" maxlength="10" oninput="resolveAccountName()" inputmode="numeric"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Account Name</label>
-            <div style="position:relative">
-              <input type="text" id="wallet-account-name" class="form-input" placeholder="Auto-detected from your bank…" readonly style="background:var(--line2);padding-right:2.4rem"/>
-              <div class="spin hidden" id="resolve-spin" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);width:16px;height:16px;border-width:2px"></div>
-            </div>
-            <p class="field-hint" id="resolve-status" style="margin-top:.4rem;font-size:.8rem"></p>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.5rem">
+            <h3 style="font-size:1rem;margin:0">🏦 Bank Account Details</h3>
+            <span id="bank-mode-badge" style="font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:.3rem"></span>
           </div>
 
-          <!-- Auto-detect verified preview card — hidden until resolved -->
-          <div id="bank-verified-panel" class="hidden" style="background:rgba(34,197,94,.07);border:1.5px solid rgba(34,197,94,.3);border-radius:var(--r-sm);padding:.9rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.8rem">
-            <div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem">🏦</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:.72rem;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.15rem">Detected Account</div>
-              <div id="bvp-name" style="font-weight:700;font-size:.95rem;color:var(--ink1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
-              <div id="bvp-meta" style="font-size:.78rem;color:var(--ink3);margin-top:.1rem">—</div>
+          <!-- LOADING STATE -->
+          <div id="bank-loading-panel">
+            <div style="text-align:center;padding:1.5rem;color:var(--ink4);font-size:.85rem">
+              <div class="spin" style="margin:0 auto .8rem;width:22px;height:22px"></div>
+              Detecting key mode…
             </div>
-            <div style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#16a34a;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap">✅ Verified</div>
           </div>
 
-          <button class="btn btn-primary btn-full" id="save-bank-btn" onclick="saveBankDetails()" disabled style="margin-top:.2rem;opacity:.5;cursor:not-allowed">
-            <span>Save Bank Details</span>
-            <div class="spin hidden" id="save-bank-spin"></div>
-          </button>
-          <p style="text-align:center;font-size:.75rem;color:var(--ink4);margin-top:.6rem" id="save-bank-hint">Account must be verified before saving</p>
+          <!-- TEST MODE PANEL -->
+          <div id="bank-test-panel" class="hidden">
+            <div style="background:rgba(245,158,11,.08);border:1.5px solid rgba(245,158,11,.35);border-radius:var(--r-sm);padding:1rem;margin-bottom:1rem">
+              <p style="font-weight:700;color:var(--saffron);font-size:.85rem;margin-bottom:.4rem">🧪 Test Mode Active</p>
+              <p style="font-size:.8rem;color:var(--ink3);margin-bottom:.8rem">Paystack test account is pre-loaded. No real money moves in test mode. Switch to a Live key in Settings to use your real bank account.</p>
+              <div style="background:var(--white);border:1px solid var(--line);border-radius:var(--r-sm);padding:.7rem .9rem;display:flex;align-items:center;gap:.8rem">
+                <div style="font-size:1.2rem">🏦</div>
+                <div>
+                  <div style="font-weight:700;font-size:.9rem;color:var(--ink1)">Paystack Test</div>
+                  <div style="font-size:.78rem;color:var(--ink3)">Paystack Test Bank  ·  0000000000</div>
+                </div>
+                <div style="margin-left:auto;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#b45309;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:20px">TEST</div>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" id="save-bank-btn-test" onclick="saveBankDetails()">
+              <span>Use Test Account</span>
+              <div class="spin hidden" id="save-bank-spin"></div>
+            </button>
+            <p style="text-align:center;font-size:.75rem;color:var(--ink4);margin-top:.6rem">Test account pre-filled. Click to confirm and save.</p>
+          </div>
+
+          <!-- LIVE MODE PANEL -->
+          <div id="bank-live-panel" class="hidden">
+            <p style="font-size:.82rem;color:var(--ink3);margin-bottom:1.2rem">Enter your real bank account. The account name will be detected automatically via Paystack.</p>
+            <div class="form-group">
+              <label class="form-label">Bank Name</label>
+              <select id="wallet-bank-code" class="form-select" onchange="resolveAccountName()">
+                <option value="">Select your bank…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Account Number</label>
+              <input type="text" id="wallet-account-number" class="form-input" placeholder="0123456789" maxlength="10" oninput="resolveAccountName()" inputmode="numeric"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Account Name</label>
+              <div style="position:relative">
+                <input type="text" id="wallet-account-name" class="form-input" placeholder="Auto-detected from your bank…" readonly style="background:var(--line2);padding-right:2.4rem"/>
+                <div class="spin hidden" id="resolve-spin" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);width:16px;height:16px;border-width:2px"></div>
+              </div>
+              <p class="field-hint" id="resolve-status" style="margin-top:.4rem;font-size:.8rem"></p>
+            </div>
+            <div id="bank-verified-panel" class="hidden" style="background:rgba(34,197,94,.07);border:1.5px solid rgba(34,197,94,.3);border-radius:var(--r-sm);padding:.9rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.8rem">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem">🏦</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:.72rem;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.15rem">Detected Account</div>
+                <div id="bvp-name" style="font-weight:700;font-size:.95rem;color:var(--ink1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+                <div id="bvp-meta" style="font-size:.78rem;color:var(--ink3);margin-top:.1rem">—</div>
+              </div>
+              <div style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#16a34a;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap">✅ Verified</div>
+            </div>
+            <button class="btn btn-primary btn-full" id="save-bank-btn" onclick="saveBankDetails()" disabled style="margin-top:.2rem;opacity:.5;cursor:not-allowed">
+              <span>Save Bank Details</span>
+              <div class="spin hidden" id="save-bank-spin"></div>
+            </button>
+            <p style="text-align:center;font-size:.75rem;color:var(--ink4);margin-top:.6rem" id="save-bank-hint">Account must be verified before saving</p>
+          </div>
         </div>
 
-        <!-- Withdraw Form -->
+        <!-- Transfer Form -->
         <div class="card">
-          <h3 style="font-size:1rem;margin-bottom:1.2rem">📤 Withdraw Funds</h3>
-          <p style="font-size:.82rem;color:var(--ink3);margin-bottom:1.2rem">Transfer funds from your Paystack balance directly to your saved bank account.</p>
+          <h3 style="font-size:1rem;margin-bottom:1.2rem">📤 Send Transfer</h3>
+          <p style="font-size:.82rem;color:var(--ink3);margin-bottom:1.2rem">Send funds from your Paystack balance directly to your saved bank account via Paystack Transfer.</p>
 
           <div id="withdraw-no-bank" class="hidden" style="text-align:center;padding:1.5rem;background:var(--line2);border-radius:var(--r-sm)">
-            <p style="font-size:.88rem;color:var(--ink3);margin-bottom:.8rem">⚠️ Set up your bank account first (left panel) before making a withdrawal.</p>
+            <p style="font-size:.88rem;color:var(--ink3);margin-bottom:.8rem">⚠️ Set up your bank account first (left panel) before sending a transfer.</p>
           </div>
 
           <div id="withdraw-form-area">
             <div class="form-group">
-              <label class="form-label">Withdraw Amount (₦)</label>
+              <label class="form-label">Transfer Amount (₦)</label>
               <div style="position:relative">
                 <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--ink3)">₦</span>
                 <input type="number" id="withdraw-amount" class="form-input" placeholder="e.g. 10000" min="100" style="padding-left:2rem"/>
               </div>
-              <p class="field-hint">Minimum withdrawal: ₦100</p>
+              <p class="field-hint">Minimum transfer: ₦100</p>
             </div>
             <div class="form-group">
               <label class="form-label">Reason / Narration</label>
@@ -582,7 +643,7 @@
 
             <button class="btn btn-primary btn-full" onclick="initiateWithdrawal()" style="background:var(--green);box-shadow:0 4px 16px rgba(34,197,94,.3)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:.4rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <span id="withdraw-btn-text">Withdraw to Bank Account</span>
+              <span id="withdraw-btn-text">Send Transfer</span>
               <div class="spin hidden" id="withdraw-spin"></div>
             </button>
           </div>
@@ -592,13 +653,13 @@
       <!-- Withdrawal History -->
       <div class="card" style="margin-top:1.5rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-          <h3 style="font-size:1rem">Withdrawal History</h3>
+          <h3 style="font-size:1rem">Transaction History</h3>
           <span style="font-size:.8rem;color:var(--ink4)" id="withdrawal-history-count"></span>
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Date</th><th>Amount</th><th>Bank</th><th>Account</th><th>Reference</th><th>Status</th></tr></thead>
-            <tbody id="withdrawal-tbody"><tr><td colspan="6" class="table-empty">Loading withdrawal history…</td></tr></tbody>
+            <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th><th>Detail</th><th>Reference</th><th>Status</th></tr></thead>
+            <tbody id="withdrawal-tbody"><tr><td colspan="7" class="table-empty">Loading transactions…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -656,7 +717,7 @@ const auth = getAuth(app);
 const db   = getFirestore(app);
 
 // ── State ─────────────────────────────────────────────────────────
-let allRegistrations = [];   // all docs from adeota_registrations
+let allRegistrations = [];   // all docs from napps_unit13_registrations
 let allCandidateFlat = [];   // flattened [{...candidate, schoolName, schoolState, submittedAt}]
 let adminData        = {};
 let currentUser      = null;
@@ -671,7 +732,7 @@ onAuthStateChanged(auth, async (user) => {
   try {
     let snap = await getDoc(doc(db, 'admins', user.uid));
     if (!snap.exists()) {
-      const d = { firstName: user.email.split('@')[0], email: user.email, role: 'admin', createdAt: Timestamp.now(), formSettings: { title: 'Unite 13 Adeota Registration', description: '' } };
+      const d = { firstName: user.email.split('@')[0], email: user.email, role: 'admin', createdAt: Timestamp.now(), formSettings: { title: 'NAPPS UNIT 13 COMMON ENTRANCE 2026 Registration', description: '' } };
       await setDoc(doc(db, 'admins', user.uid), d);
       adminData = d;
     } else {
@@ -690,7 +751,7 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById('nav-avatar').textContent = name[0].toUpperCase();
 
   // Populate settings fields
-  document.getElementById('set-title').value = adminData.formSettings?.title || 'Unite 13 Adeota Registration 2025/2026';
+  document.getElementById('set-title').value = adminData.formSettings?.title || 'NAPPS UNIT 13 COMMON ENTRANCE 2026 Registration';
   document.getElementById('set-desc').value  = adminData.formSettings?.description || '';
   document.getElementById('set-deadline').value = adminData.formSettings?.deadline || '';
   document.getElementById('set-name').value  = adminData.firstName || '';
@@ -700,18 +761,18 @@ onAuthStateChanged(auth, async (user) => {
 
   // Load payment/Paystack config from portal_config collection
   try {
-    const cfgSnap = await getDoc(doc(db, 'portal_config', 'unite13'));
+    const cfgSnap = await getDoc(doc(db, 'portal_config', 'napps_unit13'));
     if (cfgSnap.exists()) {
       const cfg = cfgSnap.data();
       document.getElementById('set-fee').value                 = cfg.applicationFee || 5000;
       document.getElementById('set-ps-public-key').value    = cfg.paystackPublicKey    || '';
       document.getElementById('set-ps-secret-key').value    = cfg.paystackSecretKey    || '';
       document.getElementById('set-ps-webhook-secret').value= cfg.paystackWebhookSecret|| '';
-      document.getElementById('set-ps-live').value          = String(cfg.isLive        || false);
+      document.getElementById('set-ps-live').value          = String(cfg.isLive !== undefined ? cfg.isLive : true);
     } else {
       // No config doc yet — pre-fill with empty defaults
       document.getElementById('set-fee').value                 = 5000;
-      document.getElementById('set-ps-live').value             = 'false';
+      document.getElementById('set-ps-live').value             = 'true';
     }
   } catch(e) {
     console.warn('Could not load portal_config:', e.message);
@@ -722,10 +783,74 @@ onAuthStateChanged(auth, async (user) => {
 
 window.doLogout = async () => { await signOut(auth); window.location.replace('login.html'); };
 
+// ── Mobile nav drawer ────────────────────────────────────────────
+window.toggleMobileNav = () => {
+  const drawer = document.getElementById('nav-mobile-drawer');
+  const isOpen = drawer.style.display === 'flex';
+  drawer.style.display = isOpen ? 'none' : 'flex';
+  drawer.style.flexDirection = 'column';
+};
+window.closeMobileNav = () => {
+  const drawer = document.getElementById('nav-mobile-drawer');
+  drawer.style.display = 'none';
+};
+// Close drawer on outside click
+document.addEventListener('click', e => {
+  const drawer = document.getElementById('nav-mobile-drawer');
+  const btn = document.getElementById('nav-hamburger');
+  if (drawer && btn && !drawer.contains(e.target) && !btn.contains(e.target)) {
+    drawer.style.display = 'none';
+  }
+});
+
+// ── Reset Registrations ──────────────────────────────────────────
+window.confirmResetRegistrations = () => {
+  document.getElementById('reset-confirm-input').value = '';
+  document.getElementById('reset-modal').style.display = 'flex';
+};
+window.closeResetModal = () => {
+  document.getElementById('reset-modal').style.display = 'none';
+};
+window.executeReset = async () => {
+  const val = document.getElementById('reset-confirm-input').value.trim().toUpperCase();
+  if (val !== 'RESET') {
+    toast('warning','Confirmation required','Please type RESET to confirm deletion.');
+    return;
+  }
+  const btn = document.getElementById('reset-confirm-btn');
+  btn.textContent = 'Deleting…';
+  btn.disabled = true;
+  try {
+    // Delete all napps_unit13_registrations documents
+    const snap = await getDocs(collection(db, 'napps_unit13_registrations'));
+    const batch = [];
+    snap.forEach(d => batch.push(deleteDoc(doc(db, 'napps_unit13_registrations', d.id))));
+    await Promise.all(batch);
+    // Also attempt legacy collection name
+    try {
+      const snap2 = await getDocs(collection(db, 'adeota_registrations'));
+      const batch2 = [];
+      snap2.forEach(d => batch2.push(deleteDoc(doc(db, 'adeota_registrations', d.id))));
+      await Promise.all(batch2);
+    } catch(_) {}
+    closeResetModal();
+    toast('success','Registrations reset','All registration data has been permanently deleted.');
+    allRegistrations = [];
+    allCandidateFlat = [];
+    renderOverview();
+    renderSchoolsTab();
+    renderCandidatesTab();
+  } catch(e) {
+    toast('error','Reset failed', e.message);
+    btn.textContent = 'Delete All Data';
+    btn.disabled = false;
+  }
+};
+
 // ── Load Data ─────────────────────────────────────────────────────
 async function loadData() {
   try {
-    const snap = await getDocs(query(collection(db, 'adeota_registrations'), orderBy('submittedAt','desc')));
+    const snap = await getDocs(query(collection(db, 'napps_unit13_registrations'), orderBy('submittedAt','desc')));
     allRegistrations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(e) {
     // Possibly needs index or empty
@@ -847,6 +972,7 @@ window.viewSchool = (id) => {
         <td style="font-size:.8rem;color:var(--ink3)">${esc(c.dob || '—')}</td>
         <td><span style="background:var(--blue-lt);color:var(--blue);padding:1px 7px;border-radius:20px;font-size:.73rem;font-weight:600">${esc(c.class || '—')}</span></td>
         <td style="font-size:.82rem">${esc(c.subject || '—')}</td>
+        <td><span style="background:var(--teal-lt);color:var(--teal);padding:1px 7px;border-radius:20px;font-size:.73rem;font-weight:600">${esc(c.centre || '—')}</span></td>
         <td>
           <button class="btn-del-cand" title="Remove this candidate"
             onclick="confirmDeleteCandidate('` + id + `', ` + i + `, '${esc(c.surname)}, ${esc(c.firstname)}')" >✕</button>
@@ -858,7 +984,7 @@ window.viewSchool = (id) => {
   const candsHtml = cands.length
     ? '<div style="overflow-x:auto"><table class="cand-mini">' +
         '<thead><tr><th>#</th><th>Surname</th><th>First Name</th><th>Other</th>' +
-        '<th>Gender</th><th>DOB</th><th>Class</th><th>Subject</th><th></th></tr></thead>' +
+        '<th>Gender</th><th>DOB</th><th>Class</th><th>Subject</th><th>Centre</th><th></th></tr></thead>' +
         '<tbody>' + candRowsHtml + '</tbody>' +
       '</table></div>'
     : '<p style="color:var(--ink3);font-size:.86rem">No candidates listed.</p>';
@@ -945,7 +1071,7 @@ window.confirmDeleteRegistration = (id, schoolName) => {
     'This will permanently delete the school registration, all candidate data, and cannot be undone.',
     schoolName,
     async () => {
-      await deleteDoc(doc(db, 'adeota_registrations', id));
+      await deleteDoc(doc(db, 'napps_unit13_registrations', id));
       // Remove from local state
       allRegistrations = allRegistrations.filter(r => r.id !== id);
       allCandidateFlat = allCandidateFlat.filter(c => c.regId !== id);
@@ -971,7 +1097,7 @@ window.confirmDeleteCandidate = (regId, candIndex, candName) => {
       if (!reg) return;
       const updatedCandidates = [...(reg.candidates || [])];
       updatedCandidates.splice(candIndex, 1);
-      await updateDoc(doc(db, 'adeota_registrations', regId), {
+      await updateDoc(doc(db, 'napps_unit13_registrations', regId), {
         candidates:     updatedCandidates,
         candidateCount: updatedCandidates.length,
       });
@@ -994,7 +1120,7 @@ window.confirmDeleteCandidate = (regId, candIndex, candName) => {
 function renderCandidatesTable(cands) {
   const tbody = document.getElementById('cands-tbody');
   document.getElementById('cands-count').textContent = cands.length + ' candidate' + (cands.length !== 1 ? 's' : '');
-  if (!cands.length) { tbody.innerHTML = '<tr><td colspan="9" class="table-empty">No candidates yet.</td></tr>'; return; }
+  if (!cands.length) { tbody.innerHTML = '<tr><td colspan="10" class="table-empty">No candidates yet.</td></tr>'; return; }
   tbody.innerHTML = cands.map((c, i) => `
     <tr>
       <td style="color:var(--ink4);font-size:.75rem">${i+1}</td>
@@ -1004,6 +1130,7 @@ function renderCandidatesTable(cands) {
       <td style="font-size:.8rem;color:var(--ink3)">${esc(c.dob||'—')}</td>
       <td><span style="background:var(--blue-lt);color:var(--blue);padding:2px 7px;border-radius:20px;font-size:.73rem;font-weight:600">${esc(c.class||'—')}</span></td>
       <td style="font-size:.82rem">${esc(c.subject||'—')}</td>
+      <td><span style="background:var(--teal-lt);color:var(--teal);padding:2px 7px;border-radius:20px;font-size:.73rem;font-weight:600">${esc(c.centre||'—')}</span></td>
       <td><div class="cand-school-badge">${esc(c.schoolName||'—')}</div></td>
       <td style="font-size:.8rem;color:var(--ink3)">${esc(c.schoolState||'—')}</td>
     </tr>`).join('');
@@ -1090,6 +1217,10 @@ window.exportCandidates = () => {
     'DOB':        c.dob||'',
     'Class':      c.class||'',
     'Subject':    c.subject||'',
+    'Examination Centre': c.centre||'',
+    'Previous School': c.prevSchool||'',
+    'Religion':   c.religion||'',
+    'State of Origin': c.stateOrigin||'',
     'School':     c.schoolName||'',
     'School State':c.schoolState||'',
   }));
@@ -1135,7 +1266,7 @@ window.saveSettings = async () => {
     paystackPublicKey:    document.getElementById('set-ps-public-key').value.trim(),
     paystackSecretKey:    document.getElementById('set-ps-secret-key').value.trim(),
     paystackWebhookSecret:document.getElementById('set-ps-webhook-secret').value.trim(),
-    isLive:               document.getElementById('set-ps-live').value === 'true',
+    isLive:               document.getElementById('set-ps-live').value !== 'false',
     updatedAt:        Timestamp.now(),
   };
 
@@ -1148,7 +1279,7 @@ window.saveSettings = async () => {
     });
 
     // Save portal_config — upsert (setDoc with merge)
-    await setDoc(doc(db,'portal_config','unite13'), portalConfig, { merge: true });
+    await setDoc(doc(db,'portal_config','napps_unit13'), portalConfig, { merge: true });
 
     toast('success','Settings saved!', `Registration fee set to ₦${fee.toLocaleString()}.`);
   } catch(e) { toast('error','Save failed', e.message); }
@@ -1175,17 +1306,22 @@ window.switchTab = (tab) => {
 
 let walletBanks        = [];
 let savedBankDetails   = null;
-let paystackSecretKey  = 'sk_test_65e77925cd08422a134e71bda840044fa0c4895a';
+let paystackSecretKey  = 'sk_live_35a8e0276cb9e901e2124afd3c7bc4b5e33c3b88';
+let paystackIsLive     = true;
 let walletInitDone     = false;
 
 async function initWalletTab() {
   if (walletInitDone) { renderWithdrawalHistory(); return; }
   walletInitDone = true;
 
-  // Pull secret key from portal_config
+  // Pull secret key + mode from portal_config
   try {
-    const snap = await getDoc(doc(db, 'portal_config', 'unite13'));
-    if (snap.exists()) paystackSecretKey = snap.data().paystackSecretKey || '';
+    const snap = await getDoc(doc(db, 'portal_config', 'napps_unit13'));
+    if (snap.exists()) {
+      const cfg = snap.data();
+      paystackSecretKey = cfg.paystackSecretKey || '';
+      paystackIsLive    = cfg.isLive !== undefined ? cfg.isLive : true;
+    }
   } catch(e) { console.warn('Could not load portal_config for wallet:', e); }
 
   // Load saved bank details from admin doc
@@ -1193,17 +1329,59 @@ async function initWalletTab() {
     const aSnap = await getDoc(doc(db, 'admins', currentUser.uid));
     if (aSnap.exists() && aSnap.data().bankDetails) {
       savedBankDetails = aSnap.data().bankDetails;
-      populateBankForm(savedBankDetails);
       updateWithdrawBankSummary();
     }
   } catch(e) { console.warn('Could not load admin bank details:', e); }
 
-  // Load bank list from Paystack
-  await loadBankList();
+  // Apply test/live bank panel based on key type
+  applyBankMode();
+
+  // Load bank list (only needed for live mode)
+  if (paystackIsLive) await loadBankList();
+
   // Load Paystack balance
   await refreshWalletBalance();
-  // Load withdrawal history
+  // Load transfer history
   renderWithdrawalHistory();
+}
+
+// ── Show test or live bank panel based on key ─────────────────────────────
+function applyBankMode() {
+  const isTest = !paystackIsLive || paystackSecretKey.startsWith('sk_test_');
+  const badge  = document.getElementById('bank-mode-badge');
+
+  document.getElementById('bank-loading-panel').classList.add('hidden');
+
+  if (isTest) {
+    // TEST MODE — auto-fill Paystack test account
+    document.getElementById('bank-test-panel').classList.remove('hidden');
+    document.getElementById('bank-live-panel').classList.add('hidden');
+    badge.textContent = '🧪 Test Mode';
+    badge.style.cssText += ';background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#b45309';
+
+    // Auto-set test bank details so transfer works immediately
+    if (!savedBankDetails || savedBankDetails.accountNumber !== '0000000000') {
+      savedBankDetails = {
+        bankCode:      '000',   // Paystack Test Bank code
+        bankName:      'Paystack Test Bank',
+        accountNumber: '0000000000',
+        accountName:   'Paystack Test',
+        isTest:        true,
+      };
+      updateWithdrawBankSummary();
+    }
+  } else {
+    // LIVE MODE — show real account input form
+    document.getElementById('bank-live-panel').classList.remove('hidden');
+    document.getElementById('bank-test-panel').classList.add('hidden');
+    badge.textContent = '✅ Live Mode';
+    badge.style.cssText += ';background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#15803d';
+
+    // If we have saved live bank details, populate the form
+    if (savedBankDetails && !savedBankDetails.isTest) {
+      populateBankForm(savedBankDetails);
+    }
+  }
 }
 
 async function loadBankList() {
@@ -1214,14 +1392,19 @@ async function loadBankList() {
     if (data.status && data.data) {
       walletBanks = data.data;
       const sel = document.getElementById('wallet-bank-code');
+      // Suppress resolveAccountName during programmatic population
+      window._suppressResolve = true;
       sel.innerHTML = '<option value="">Select your bank…</option>';
       walletBanks.forEach(b => {
         const opt = document.createElement('option');
         opt.value = b.code;
         opt.textContent = b.name;
-        if (savedBankDetails && savedBankDetails.bankCode === b.code) opt.selected = true;
+        if (savedBankDetails && !savedBankDetails.isTest && savedBankDetails.bankCode === b.code) opt.selected = true;
         sel.appendChild(opt);
       });
+      window._suppressResolve = false;
+      // If a saved live account is loaded, repopulate the form now that banks are ready
+      if (savedBankDetails && !savedBankDetails.isTest) populateBankForm(savedBankDetails);
     }
   } catch(e) { console.warn('Could not load banks:', e); }
 }
@@ -1234,7 +1417,7 @@ window.refreshWalletBalance = async function() {
   if (!paystackSecretKey) {
     // Try reload from Firestore in case settings were just saved
     try {
-      const snap = await getDoc(doc(db, 'portal_config', 'unite13'));
+      const snap = await getDoc(doc(db, 'portal_config', 'napps_unit13'));
       if (snap.exists()) paystackSecretKey = snap.data().paystackSecretKey || '';
     } catch(e) {}
   }
@@ -1248,12 +1431,11 @@ window.refreshWalletBalance = async function() {
   }
 
   try {
-    const res  = await fetch(`/api/paystack/verify/balance_check?secretKey=${encodeURIComponent(paystackSecretKey)}`);
-    // Paystack does not have a public balance endpoint in the standard plan.
-    // We compute available balance from the payments collection instead.
+    // Balance is computed from Firestore payments/withdrawals collections.
+    // Payments are tagged with portalId:'napps_unit13' (set by payment.html).
     const pSnap = await getDocs(
       query(collection(db, 'payments'),
-            where('adminId', '==', currentUser.uid),
+            where('portalId', '==', 'napps_unit13'),
             where('status', '==', 'paid'))
     );
     let totalPaid = 0;
@@ -1282,6 +1464,10 @@ window.refreshWalletBalance = async function() {
 
 let resolveTimeout = null;
 window.resolveAccountName = function() {
+  // Never resolve in test mode or while bank list is being programmatically populated
+  if (!paystackIsLive) return;
+  if (window._suppressResolve) return;
+
   const accNum   = document.getElementById('wallet-account-number').value.trim();
   const bankCode = document.getElementById('wallet-bank-code').value;
   const nameEl   = document.getElementById('wallet-account-name');
@@ -1350,27 +1536,51 @@ window.resolveAccountName = function() {
 };
 
 window.saveBankDetails = async function() {
-  const bankCode    = document.getElementById('wallet-bank-code').value;
-  const accountNum  = document.getElementById('wallet-account-number').value.trim();
-  const accountName = document.getElementById('wallet-account-name').value.trim();
-  const bankName    = walletBanks.find(b => b.code === bankCode)?.name || bankCode;
+  const isTest = !paystackIsLive || paystackSecretKey.startsWith('sk_test_');
+  const spin   = document.getElementById('save-bank-spin');
 
-  if (!bankCode)    return toast('warning', 'Select a bank', '', 3000);
-  if (accountNum.length !== 10) return toast('warning', 'Enter a valid 10-digit account number', '', 3000);
-  if (!accountName) return toast('warning', 'Account not verified yet', 'Wait for account name to be resolved.', 4000);
+  let bankDetails;
 
-  const btn  = document.getElementById('save-bank-btn');
-  const spin = document.getElementById('save-bank-spin');
-  btn.disabled = true; spin.classList.remove('hidden');
+  if (isTest) {
+    // Test mode — always save the Paystack test account
+    bankDetails = {
+      bankCode:      '001',
+      bankName:      'Paystack Test Bank',
+      accountNumber: '0000000000',
+      accountName:   'Paystack Test',
+      isTest:        true,
+      updatedAt:     Timestamp.now(),
+    };
+  } else {
+    // Live mode — validate and use the entered account
+    const bankCode    = document.getElementById('wallet-bank-code').value;
+    const accountNum  = document.getElementById('wallet-account-number').value.trim();
+    const accountName = document.getElementById('wallet-account-name').value.trim();
+    const bankName    = walletBanks.find(b => b.code === bankCode)?.name || bankCode;
 
-  const bankDetails = { bankCode, bankName, accountNumber: accountNum, accountName, updatedAt: Timestamp.now() };
+    if (!bankCode)            return toast('warning', 'Select a bank', '', 3000);
+    if (accountNum.length !== 10) return toast('warning', 'Enter a valid 10-digit account number', '', 3000);
+    if (!accountName)         return toast('warning', 'Account not verified yet', 'Wait for account name to be resolved.', 4000);
+
+    bankDetails = { bankCode, bankName, accountNumber: accountNum, accountName, isTest: false, updatedAt: Timestamp.now() };
+  }
+
+  const btnId = isTest ? 'save-bank-btn-test' : 'save-bank-btn';
+  const btn   = document.getElementById(btnId);
+  if (btn) btn.disabled = true;
+  spin.classList.remove('hidden');
+
   try {
     await updateDoc(doc(db, 'admins', currentUser.uid), { bankDetails });
     savedBankDetails = bankDetails;
     updateWithdrawBankSummary();
-    toast('success', 'Bank details saved!', `${accountName} — ${bankName}`, 5000);
+    toast('success', 'Bank details saved!',
+      `${bankDetails.accountName} — ${bankDetails.bankName}`, 5000);
   } catch(e) { toast('error', 'Save failed', e.message); }
-  finally { btn.disabled = false; spin.classList.add('hidden'); }
+  finally {
+    if (btn) btn.disabled = false;
+    spin.classList.add('hidden');
+  }
 };
 
 function updateWithdrawBankSummary() {
@@ -1389,23 +1599,25 @@ function updateWithdrawBankSummary() {
 }
 
 function populateBankForm(details) {
-  document.getElementById('wallet-account-number').value = details.accountNumber || '';
-  document.getElementById('wallet-account-name').value   = details.accountName   || '';
+  // Only called in live mode
+  const numEl  = document.getElementById('wallet-account-number');
+  const nameEl = document.getElementById('wallet-account-name');
+  if (numEl)  numEl.value  = details.accountNumber || '';
+  if (nameEl) nameEl.value = details.accountName   || '';
   // bank code select filled after loadBankList
 
-  // Show verified panel if we have a saved account name
   if (details.accountName && details.accountNumber) {
-    const bankName = details.bankName || details.bankCode || '';
-    document.getElementById('bvp-name').textContent = details.accountName;
-    document.getElementById('bvp-meta').textContent = `${bankName}  ·  ${details.accountNumber}`;
-    document.getElementById('bank-verified-panel').classList.remove('hidden');
-    const saveBtn = document.getElementById('save-bank-btn');
-    saveBtn.disabled = false;
-    saveBtn.style.opacity = '1';
-    saveBtn.style.cursor = 'pointer';
-    const hintEl = document.getElementById('save-bank-hint');
-    hintEl.textContent = 'Saved account loaded. You can update and re-save anytime.';
-    hintEl.style.color = 'var(--ink4)';
+    const bankName  = details.bankName || details.bankCode || '';
+    const bvpPanel  = document.getElementById('bank-verified-panel');
+    const bvpName   = document.getElementById('bvp-name');
+    const bvpMeta   = document.getElementById('bvp-meta');
+    const saveBtn   = document.getElementById('save-bank-btn');
+    const hintEl    = document.getElementById('save-bank-hint');
+    if (bvpName)  bvpName.textContent = details.accountName;
+    if (bvpMeta)  bvpMeta.textContent = `${bankName}  ·  ${details.accountNumber}`;
+    if (bvpPanel) bvpPanel.classList.remove('hidden');
+    if (saveBtn)  { saveBtn.disabled = false; saveBtn.style.opacity = '1'; saveBtn.style.cursor = 'pointer'; }
+    if (hintEl)   { hintEl.textContent = 'Saved account loaded. You can update and re-save anytime.'; hintEl.style.color = 'var(--ink4)'; }
   }
 }
 
@@ -1421,25 +1633,57 @@ window.initiateWithdrawal = async function() {
   const btn  = document.getElementById('withdraw-btn-text').parentElement;
   const text = document.getElementById('withdraw-btn-text');
   const spin = document.getElementById('withdraw-spin');
-  btn.disabled = true; text.textContent = 'Processing…'; spin.classList.remove('hidden');
+  btn.disabled = true; text.textContent = 'Initiating Transfer…'; spin.classList.remove('hidden');
+
+  // Generate a unique reference for idempotency.
+  // Per Paystack docs: always use the SAME reference when retrying a failed
+  // transfer — never generate a new one — to avoid double-crediting.
+  const reference = `ADM-${currentUser.uid.substring(0,6).toUpperCase()}-${Date.now()}`;
 
   try {
-    const res  = await fetch('/api/paystack/withdraw', {
-      method: 'POST',
+
+    // Recipient creation is handled server-side inside /api/paystack/transfer (Step 1).
+    // Do NOT call Paystack directly from the browser — it would expose the secret key.
+    const payload = {
+      secretKey: paystackSecretKey,
+      amount,
+      reason,
+      reference,                              // passed to Paystack for idempotency
+      accountNumber: savedBankDetails.accountNumber,
+      bankCode:      savedBankDetails.bankCode,
+      accountName:   savedBankDetails.accountName,
+    };
+    console.log("payload", payload)
+    // Reuse saved recipientCode to skip re-creating the recipient
+    if (savedBankDetails.recipientCode) {
+      payload.recipientCode = savedBankDetails.recipientCode;
+    }
+
+    const res  = await fetch('/api/paystack/transfer', {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        secretKey:     paystackSecretKey,
-        amount,
-        accountNumber: savedBankDetails.accountNumber,
-        bankCode:      savedBankDetails.bankCode,
-        accountName:   savedBankDetails.accountName,
-        reason,
-      }),
+      body:    JSON.stringify(payload),
     });
     const data = await res.json();
+    console.log("payload data", data)
 
+    // data.status = true/false is the API envelope
+    // data.data.status = "pending" | "otp" | "success" | "failed" is the transfer status
     if (data.status) {
-      // Log withdrawal to Firestore
+      // Persist recipientCode to Firestore if this was the first transfer
+      if (data.recipientCode && !savedBankDetails.recipientCode) {
+        const updated = { ...savedBankDetails, recipientCode: data.recipientCode };
+        try {
+          await updateDoc(doc(db, 'admins', currentUser.uid), { bankDetails: updated });
+          savedBankDetails = updated;
+        } catch(e) { console.warn('Could not save recipientCode:', e); }
+      }
+
+      const transferStatus = data.data?.status || 'pending';
+      const transferRef    = data.data?.reference || reference;
+      const transferCode   = data.data?.transfer_code || '';
+
+      // Log transfer to Firestore immediately — final status arrives via webhook
       await addDoc(collection(db, 'withdrawals'), {
         adminId:       currentUser.uid,
         amount,
@@ -1447,62 +1691,138 @@ window.initiateWithdrawal = async function() {
         bankName:      savedBankDetails.bankName,
         accountNumber: savedBankDetails.accountNumber,
         accountName:   savedBankDetails.accountName,
+        recipientCode: data.recipientCode || savedBankDetails.recipientCode || '',
         reason,
-        reference:     data.data?.reference || '',
-        transferCode:  data.data?.transfer_code || '',
-        status:        data.data?.status || 'pending',
+        reference:     transferRef,
+        transferCode,
+        status:        transferStatus,
         initiatedAt:   Timestamp.now(),
       });
-      toast('success', 'Withdrawal initiated! 🎉',
-        `₦${amount.toLocaleString()} → ${savedBankDetails.bankName}. Ref: ${data.data?.reference || ''}`, 8000);
+
+      // Handle each possible transfer status per Paystack docs
+      if (transferStatus === 'otp') {
+        toast('warning', 'OTP Required',
+          'Paystack sent an OTP to your registered email/phone. Approve it to complete the transfer. Or disable OTP in Paystack Dashboard → Preferences.', 10000);
+      } else if (transferStatus === 'success') {
+        // Test mode: Paystack always returns success immediately (no real processing)
+        toast('success', 'Transfer successful! 🎉',
+          `₦${amount.toLocaleString()} → ${savedBankDetails.bankName}. Ref: ${transferRef}`, 8000);
+      } else {
+        // "pending" is the normal live response — final status comes via webhook
+        toast('success', 'Transfer initiated! 🎉',
+          `₦${amount.toLocaleString()} queued → ${savedBankDetails.bankName}. Ref: ${transferRef}`, 8000);
+      }
+
       document.getElementById('withdraw-amount').value = '';
       document.getElementById('withdraw-reason').value = '';
       await refreshWalletBalance();
       renderWithdrawalHistory();
+
     } else {
-      toast('error', 'Withdrawal failed', data.message || data.error || 'Check your Paystack balance and credentials.', 7000);
+      // API envelope status = false means the request itself was rejected
+      console.log("error", data)
+      toast('error', 'Transfer failed',
+        data.message || data.detail || data.error || 'Check your Paystack balance and credentials.', 7000);
     }
   } catch(e) {
-    toast('error', 'Withdrawal error', e.message, 6000);
+    console.log("error", e.message)
+    toast('error', 'Transfer error', e.message, 6000);
   } finally {
-    btn.disabled = false; text.textContent = 'Withdraw to Bank Account'; spin.classList.add('hidden');
+    btn.disabled = false; text.textContent = 'Send Transfer'; spin.classList.add('hidden');
   }
 };
 
+
 async function renderWithdrawalHistory() {
   const tbody = document.getElementById('withdrawal-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="table-empty">Loading…</td></tr>';
   try {
-    const snap = await getDocs(
-      query(collection(db, 'withdrawals'),
-            where('adminId', '==', currentUser.uid),
-            orderBy('initiatedAt', 'desc'))
-    );
-    document.getElementById('withdrawal-history-count').textContent =
-      snap.size > 0 ? `${snap.size} record${snap.size > 1 ? 's' : ''}` : '';
+    // Load incoming payments (tagged by portalId)
+    let payRows = [];
+    try {
+      const pSnap = await getDocs(
+        query(collection(db, 'payments'),
+              where('portalId', '==', 'napps_unit13'),
+              where('status', '==', 'paid'),
+              orderBy('paidAt', 'desc'))
+      );
+      pSnap.forEach(d => {
+        const p = d.data();
+        payRows.push({
+          type:      'in',
+          date:      p.paidAt,
+          amount:    p.amount || 0,
+          desc:      esc(p.applicantName || 'Registration Payment'),
+          detail:    esc(p.applicantEmail || '—'),
+          reference: esc(p.reference || '—'),
+          status:    'success',
+        });
+      });
+    } catch(e) { console.warn('Could not load payments:', e.message); }
 
-    if (snap.empty) {
-      tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No withdrawals yet.</td></tr>';
+    // Load withdrawals (tagged by admin UID)
+    let wRows = [];
+    try {
+      const wSnap = await getDocs(
+        query(collection(db, 'withdrawals'),
+              where('adminId', '==', currentUser.uid),
+              orderBy('initiatedAt', 'desc'))
+      );
+      wSnap.forEach(d => {
+        const w = d.data();
+        wRows.push({
+          type:      'out',
+          date:      w.initiatedAt,
+          amount:    w.amount || 0,
+          desc:      esc(w.bankName || 'Withdrawal'),
+          detail:    esc(w.accountNumber || '—'),
+          reference: esc(w.reference || '—'),
+          status:    w.status || 'pending',
+        });
+      });
+    } catch(e) { console.warn('Could not load withdrawals:', e.message); }
+
+    // Merge and sort by date descending
+    const allRows = [...payRows, ...wRows].sort((a, b) => {
+      const aT = a.date?.toDate?.()?.getTime() || 0;
+      const bT = b.date?.toDate?.()?.getTime() || 0;
+      return bT - aT;
+    });
+
+    const count = allRows.length;
+    document.getElementById('withdrawal-history-count').textContent =
+      count > 0 ? `${count} transaction${count !== 1 ? 's' : ''}` : '';
+
+    if (!allRows.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="table-empty">No transactions yet.</td></tr>';
       return;
     }
-    tbody.innerHTML = '';
-    snap.forEach(d => {
-      const w = d.data();
-      const statusColor = w.status === 'success' ? '#15803d' :
-                          w.status === 'failed'  ? 'var(--red)' : 'var(--saf2)';
-      const statusBg    = w.status === 'success' ? 'var(--green-lt)' :
-                          w.status === 'failed'  ? 'var(--red-lt)'   : 'var(--saf-lt)';
-      tbody.innerHTML += `<tr>
-        <td>${fmtDate(w.initiatedAt)}</td>
-        <td style="font-weight:700">₦${(w.amount||0).toLocaleString()}</td>
-        <td>${esc(w.bankName||'—')}</td>
-        <td style="font-family:monospace;font-size:.82rem">${esc(w.accountNumber||'—')}</td>
-        <td style="font-family:monospace;font-size:.78rem;word-break:break-all">${esc(w.reference||'—')}</td>
-        <td><span style="background:${statusBg};color:${statusColor};padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700">${(w.status||'pending').toUpperCase()}</span></td>
+
+    tbody.innerHTML = allRows.map(row => {
+      const isIn        = row.type === 'in';
+      const statusColor = row.status === 'success' ? '#15803d' :
+                          row.status === 'failed'  ? 'var(--red)' : 'var(--saf2)';
+      const statusBg    = row.status === 'success' ? 'var(--green-lt)' :
+                          row.status === 'failed'  ? 'var(--red-lt)'   : 'var(--saf-lt)';
+      const typeBadge   = isIn
+        ? `<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:20px;font-size:.73rem;font-weight:700">&#x2B06; IN</span>`
+        : `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:20px;font-size:.73rem;font-weight:700">&#x2B07; OUT</span>`;
+      const amtColor    = isIn ? '#15803d' : '#dc2626';
+      const amtSign     = isIn ? '+' : '−';
+
+      return `<tr>
+        <td style="font-size:.8rem;white-space:nowrap">${fmtDate(row.date)}</td>
+        <td>${typeBadge}</td>
+        <td style="font-weight:700;color:${amtColor}">${amtSign}₦${row.amount.toLocaleString()}</td>
+        <td>${row.desc}</td>
+        <td style="font-size:.8rem;color:var(--ink3)">${row.detail}</td>
+        <td style="font-family:monospace;font-size:.75rem;word-break:break-all;max-width:120px;overflow:hidden;text-overflow:ellipsis" title="${row.reference}">${row.reference}</td>
+        <td><span style="background:${statusBg};color:${statusColor};padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700">${row.status.toUpperCase()}</span></td>
       </tr>`;
-    });
+    }).join('');
+
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="6" class="table-empty">Error loading history: ${esc(e.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="table-empty">Error loading transactions: ${esc(e.message)}</td></tr>`;
   }
 }
 
@@ -1528,5 +1848,24 @@ function toast(type,title,msg='',dur=4500) {
   setTimeout(()=>{el.classList.add('leaving');setTimeout(()=>el.remove(),350);},dur);
 }
 </script>
+<!-- ── Reset Registrations Modal ── -->
+<div id="reset-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9000;display:none;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:20px;padding:2rem;max-width:440px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.3);animation:cardIn .3s ease">
+    <div style="width:56px;height:56px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <h3 style="text-align:center;font-size:1.2rem;margin-bottom:.5rem;color:#0f172a">Reset All Registrations?</h3>
+    <p style="text-align:center;color:#64748b;font-size:.875rem;margin-bottom:1.5rem;line-height:1.6">This will permanently delete <strong>all school registrations, candidates, and payment records</strong> from the database. This action <strong>cannot be undone</strong>.</p>
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:.8rem 1rem;font-size:.82rem;color:#991b1b;margin-bottom:1.5rem">
+      ⚠️ Type <strong>RESET</strong> below to confirm you want to delete all data.
+    </div>
+    <input type="text" id="reset-confirm-input" class="form-input" placeholder='Type RESET to confirm' style="margin-bottom:1rem;text-transform:uppercase"/>
+    <div style="display:flex;gap:.75rem">
+      <button class="btn btn-outline btn-full" onclick="closeResetModal()">Cancel</button>
+      <button class="btn btn-full" id="reset-confirm-btn" onclick="executeReset()" style="background:#ef4444;color:#fff;border-color:#ef4444">Delete All Data</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

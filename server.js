@@ -34,6 +34,23 @@ app.post('/api/paystack/init', async (req, res) => {
 
 // ── Paystack: Verify Transaction ─────────────────────────────────────────────
 // Called on the return redirect to confirm payment status server-side.
+app.post('/api/paystack/verify', async (req, res) => {
+  const { secretKey, reference } = req.body;
+  if (!secretKey || !reference) {
+    return res.status(400).json({ error: 'Missing secretKey or reference' });
+  }
+  try {
+    const psRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+      headers: { 'Authorization': `Bearer ${secretKey}` },
+    });
+    const data = await psRes.json();
+    return res.status(psRes.status).json(data);
+  } catch (err) {
+    console.error('[Paystack verify] error:', err);
+    return res.status(502).json({ error: 'Failed to verify with Paystack', detail: err.message });
+  }
+});
+
 app.get('/api/paystack/verify/:reference', async (req, res) => {
   const { secretKey } = req.query;
   const { reference } = req.params;
@@ -190,6 +207,44 @@ app.get('/api/paystack/resolve-account', async (req, res) => {
     return res.status(r.status).json(data);
   } catch (err) {
     return res.status(502).json({ error: 'Failed to resolve account', detail: err.message });
+  }
+});
+
+// ── Paystack: Get Balance ─────────────────────────────────────────────────────
+// Get the actual Paystack balance for live wallet display
+app.get('/api/paystack/balance', async (req, res) => {
+  const { secretKey } = req.query;
+  if (!secretKey) {
+    return res.status(400).json({ error: 'Missing secretKey' });
+  }
+  try {
+    const psRes = await fetch('https://api.paystack.co/balance', {
+      headers: { 'Authorization': `Bearer ${secretKey}` },
+    });
+    const data = await psRes.json();
+    return res.status(psRes.status).json(data);
+  } catch (err) {
+    console.error('[Paystack balance] error:', err);
+    return res.status(502).json({ error: 'Failed to get Paystack balance', detail: err.message });
+  }
+});
+
+// ── Paystack: Get Transactions ───────────────────────────────────────────────
+// Get live transaction history from Paystack
+app.get('/api/paystack/transactions', async (req, res) => {
+  const { secretKey, perPage = 50, page = 1 } = req.query;
+  if (!secretKey) {
+    return res.status(400).json({ error: 'Missing secretKey' });
+  }
+  try {
+    const psRes = await fetch(`https://api.paystack.co/transaction?perPage=${perPage}&page=${page}`, {
+      headers: { 'Authorization': `Bearer ${secretKey}` },
+    });
+    const data = await psRes.json();
+    return res.status(psRes.status).json(data);
+  } catch (err) {
+    console.error('[Paystack transactions] error:', err);
+    return res.status(502).json({ error: 'Failed to get Paystack transactions', detail: err.message });
   }
 });
 

@@ -1,11 +1,12 @@
 {
   "name": "gods-celebrities",
   "version": "1.0.0",
-  "description": "Unite 13 Adeota — Paystack payment integration with admin wallet & withdrawals",
+  "description": "Unite 13 Adeota \u2014 Paystack payment integration with admin wallet & withdrawals",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "echo 'No build step required'"
+    "build": "node -e \"const fs=require('fs'),path=require('path');const pub=path.join(__dirname,'public');const out=path.join(__dirname,'out');const files=['index.html','login.html','register.html','dashboard.html','payment.html','adeota-admin.html','application-form.html','style.css','app.js','firebase-config.js'];let ok=true;files.forEach(f=>{const fp=path.join(pub,f);if(!fs.existsSync(fp)){console.error('MISSING: '+f);ok=false;}else{console.log('OK: '+f);}});if(!ok)process.exit(1);if(!fs.existsSync(out))fs.mkdirSync(out,{recursive:true});files.forEach(f=>{const src=path.join(pub,f);if(fs.existsSync(src))fs.copyFileSync(src,path.join(out,f));});console.log('\\\\nBuild complete \u2014 assets copied to /out.');\"",
+    "dev": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",

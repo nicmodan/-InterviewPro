@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Wallet Test</title>
+  <script src="app.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+  <h1>Firebase Wallet Balance Test</h1>
+  <div id="toast-wrap"></div>
+
+  <button onclick="testWalletBalance()">Test Wallet Balance</button>
+  <button onclick="checkPaymentsCollection()">Check Payments Collection</button>
+  <button onclick="clearTestPayments()">Clear Test Payments</button>
+  <button onclick="testLiveBalance()">Test Live Balance</button>
+  <button onclick="testLiveTransactions()">Test Live Transactions</button>
+
+  <div id="results"></div>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import {
+      collection, getDocs, query, where, doc, deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    async function testWalletBalance() {
+      try {
+        document.getElementById('results').innerHTML += '<p>🔍 Testing wallet balance calculation...</p>';
+
+        // Replicate the exact logic from adeota-admin.html
+        const pSnap = await getDocs(
+          query(collection(db, 'payments'),
+                where('portalId', '==', 'napps_unit13'),
+                where('status', '==', 'paid'))
+        );
+
+        let totalPaid = 0;
+        let paymentCount = 0;
+        pSnap.forEach(d => {
+          const amount = d.data().amount || 0;
+          totalPaid += amount;
+          paymentCount++;
+          document.getElementById('results').innerHTML +=
+            `<p>Payment ${paymentCount}: ₦${amount.toLocaleString()} (${d.data().reference || 'no-ref'})</p>`;
+        });
+
+        document.getElementById('results').innerHTML +=
+          `<p><strong>Total Paid: ₦${totalPaid.toLocaleString()} (${paymentCount} payments)</strong></p>`;
+
+        // Check withdrawals
+        const wSnap = await getDocs(
+          query(collection(db, 'withdrawals'), where('adminId', '==', 'test-admin-id')) // Using test ID since we don't have currentUser
+        );
+
+        let totalSuccessfullyWithdrawn = 0;
+        let totalPendingAmount = 0;
+        let withdrawalCount = 0;
+
+        wSnap.forEach(d => {
+          const wd = d.data();
+          withdrawalCount++;
+          if (wd.status === 'success') {
+            totalSuccessfullyWithdrawn += (wd.amount || 0);
+            document.getElementById('results').innerHTML +=
+              `<p>✅ Completed Withdrawal: ₦${(wd.amount || 0).toLocaleString()}</p>`;
+          } else if (wd.status === 'pending' || wd.status === 'otp') {
+            totalPendingAmount += (wd.amount || 0);
+            document.getElementById('results').innerHTML +=
+              `<p>⏳ Pending Withdrawal: ₦${(wd.amount || 0).toLocaleString()} (${wd.status})</p>`;
+          }
+        });
+
+        document.getElementById('results').innerHTML +=
+          `<p><strong>Withdrawals: ₦${totalSuccessfullyWithdrawn.toLocaleString()} completed, ₦${totalPendingAmount.toLocaleString()} pending</strong></p>`;
+
+        const available = totalPaid;
+        document.getElementById('results').innerHTML +=
+          `<p><strong>💰 Available Balance (Total Paid): ₦${available.toLocaleString()}</strong></p>`;
+
+        toast('success', 'Wallet Test Complete', `Found ${paymentCount} payments totaling ₦${totalPaid.toLocaleString()}`);
+
+      } catch (error) {
+        document.getElementById('results').innerHTML += `<p>❌ Error: ${error.message}</p>`;
+        toast('error', 'Test Failed', error.message);
+      }
+    }
+
+    async function checkPaymentsCollection() {
+      try {
+        document.getElementById('results').innerHTML += '<p>🔍 Checking all payments...</p>';
+
+        const allPayments = await getDocs(collection(db, 'payments'));
+        let count = 0;
+
+        allPayments.forEach(d => {
+          const data = d.data();
+          count++;
+          document.getElementById('results').innerHTML +=
+            `<p>Payment ${count}: portalId=${data.portalId}, status=${data.status}, amount=₦${(data.amount || 0).toLocaleString()}, ref=${data.reference || 'none'}</p>`;
+        });
+
+        document.getElementById('results').innerHTML +=
+          `<p><strong>Total payments in collection: ${count}</strong></p>`;
+
+        toast('info', 'Payments Check', `Found ${count} total payments`);
+
+      } catch (error) {
+        document.getElementById('results').innerHTML += `<p>❌ Error: ${error.message}</p>`;
+        toast('error', 'Check Failed', error.message);
+      }
+    }
+
+    async function checkWithdrawalsCollection() {
+      try {
+        document.getElementById('results').innerHTML += '<p>🔍 Checking all withdrawals...</p>';
+
+        const allWithdrawals = await getDocs(collection(db, 'withdrawals'));
+        let count = 0;
+
+        allWithdrawals.forEach(d => {
+          const data = d.data();
+          count++;
+          document.getElementById('results').innerHTML +=
+            `<p>Withdrawal ${count}: adminId=${data.adminId}, status=${data.status}, amount=₦${(data.amount || 0).toLocaleString()}</p>`;
+        });
+
+        document.getElementById('results').innerHTML +=
+          `<p><strong>Total withdrawals in collection: ${count}</strong></p>`;
+
+        toast('info', 'Withdrawals Check', `Found ${count} total withdrawals`);
+
+      } catch (error) {
+        document.getElementById('results').innerHTML += `<p>❌ Error: ${error.message}</p>`;
+    async function clearTestPayments() {
+      try {
+        document.getElementById('results').innerHTML += '<p>🗑️ Clearing test payments...</p>';
+
+        const pSnap = await getDocs(collection(db, 'payments'));
+        let deletedCount = 0;
+
+        const deletePromises = [];
+        pSnap.forEach(d => {
+          deletePromises.push(deleteDoc(doc(db, 'payments', d.id)));
+          deletedCount++;
+        });
+
+        await Promise.all(deletePromises);
+
+        document.getElementById('results').innerHTML +=
+          `<p><strong>✅ Deleted ${deletedCount} payments</strong></p>`;
+
+        toast('success', 'Payments Cleared', `Deleted ${deletedCount} payment records`);
+
+      } catch (error) {
+        document.getElementById('results').innerHTML += `<p>❌ Error: ${error.message}</p>`;
+        toast('error', 'Clear Failed', error.message);
+      }
+    }
+
+    async function clearTestWithdrawals() {
+      try {
+        document.getElementById('results').innerHTML += '<p>🗑️ Clearing test withdrawals...</p>';
+
+        const wSnap = await getDocs(collection(db, 'withdrawals'));
+        let deletedCount = 0;
+
+        const deletePromises = [];
+        wSnap.forEach(d => {
+          deletePromises.push(deleteDoc(doc(db, 'withdrawals', d.id)));
+          deletedCount++;
+        });
+
+        await Promise.all(deletePromises);
+
+        document.getElementById('results').innerHTML +=
+          `<p><strong>✅ Deleted ${deletedCount} withdrawals</strong></p>`;
+
+        toast('success', 'Withdrawals Cleared', `Deleted ${deletedCount} withdrawal records`);
+
+      } catch (error) {
+        document.getElementById('results').innerHTML += `<p>❌ Error: ${error.message}</p>`;
+        toast('error', 'Clear Failed', error.message);
+      }
+    }

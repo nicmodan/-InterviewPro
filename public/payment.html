@@ -109,8 +109,12 @@
         <span class="pir-val" id="pay-appid" style="font-size:.8rem;word-break:break-all;max-width:220px;text-align:right">—</span>
       </div>
       <div class="pay-info-row">
+        <span class="pir-lbl">Fee Tier</span>
+        <span class="pir-val"><span id="pay-tier-label" style="display:none;background:var(--saf-lt);color:var(--saf2);padding:2px 8px;border-radius:20px;font-size:.78rem;font-weight:700;margin-right:.4rem"></span>Registration Fee</span>
+      </div>
+      <div class="pay-info-row">
         <span class="pir-lbl">Accepted Methods</span>
-        <span class="pir-val">Card · Bank Transfer · USSD</span>
+        <span class="pir-val" id="pay-methods-val">Card · Bank Transfer · USSD</span>
       </div>
       <div class="pay-info-row">
         <span class="pir-lbl">Payment Mode</span>
@@ -149,6 +153,8 @@
   <strong>NAPPS UNIT 13 COMMON ENTRANCE 2026</strong> · Secure payments via <strong>Paystack</strong>
 </div>
 
+
+
 <!-- Paystack inline JS SDK -->
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
@@ -174,25 +180,63 @@ const adminId  = params.get('adminId')  || '';
 const name     = decodeURIComponent(params.get('name')  || '');
 const email    = decodeURIComponent(params.get('email') || '');
 const rawAmt   = params.get('amount');
-const amountNGN = (rawAmt && !isNaN(parseInt(rawAmt,10))) ? parseInt(rawAmt,10) : 5000;
+const amountNGN  = (rawAmt && !isNaN(parseInt(rawAmt,10))) ? parseInt(rawAmt,10) : 5000;
 const amountKobo = amountNGN * 100;
+const tierIndex = params.get('tierIndex') ? parseInt(params.get('tierIndex'), 10) : null;
 
 // Check if returning from Paystack redirect (fallback flow)
 const returnRef = params.get('reference') || params.get('trxref') || '';
 
-// let PAYSTACK_PUBLIC_KEY  = 'pk_live_9b8113a7d54efae144b00f773bb8ed131d976ecd';
-// let PAYSTACK_SECRET_KEY  = 'sk_live_35a8e0276cb9e901e2124afd3c7bc4b5e33c3b88';
-// let IS_LIVE = true;
+// ── Config — populated from Firestore ────────────────────────
+let PAYSTACK_PUBLIC_KEY = 'pk_live_9b8113a7d54efae144b00f773bb8ed131d976ecd';
+let PAYSTACK_SECRET_KEY = 'sk_live_35a8e0276cb9e901e2124afd3c7bc4b5e33c3b88';
+let IS_LIVE             = true;
+let PAYMENT_METHODS     = ['card', 'bank', 'ussd']; // default; overridden by Firestore
 
 // ── Load config from Firestore portal_config ──────────────────
+// FIXED: was reading from 'unite13' — now reads correct doc 'napps_unit13'
 async function loadConfig() {
   try {
-    const snap = await getDoc(doc(db, 'portal_config', 'unite13'));
+    // Try napps_unit13 first (main portal config)
+    let snap = await getDoc(doc(db, 'portal_config', 'napps_unit13'));
+    // Fall back to legacy 'unite13' doc if it doesn't exist
+    if (!snap.exists()) snap = await getDoc(doc(db, 'portal_config', 'unite13'));
     if (snap.exists()) {
       const cfg = snap.data();
-      PAYSTACK_PUBLIC_KEY = cfg.paystackPublicKey  || '';
-      PAYSTACK_SECRET_KEY = cfg.paystackSecretKey  || '';
+      PAYSTACK_PUBLIC_KEY = cfg.paystackPublicKey || '';
+      PAYSTACK_SECRET_KEY = cfg.paystackSecretKey || '';
       IS_LIVE             = cfg.isLive !== undefined ? cfg.isLive : true;
+      // Load active fee tier amount (overrides URL param if present)
+      if (cfg.priceTiers && cfg.priceTiers.length) {
+        // Use tierIndex from URL if provided, else activeTierIndex
+        const idx = (tierIndex !== null && tierIndex >= 0 && tierIndex < cfg.priceTiers.length) ? tierIndex : (cfg.activeTierIndex || 0);
+        const tier = cfg.priceTiers[idx] || cfg.priceTiers[0];
+        if (tier && tier.amount) {
+          // Update the displayed amount to match the selected/configured tier
+          const tierAmt = Number(tier.amount);
+          if (tierAmt > 0) {
+            // Re-assign so payment uses the selected amount
+            window._configuredAmount = tierAmt;
+            window._configuredAmountKobo = tierAmt * 100;
+          }
+        }
+        // Show tier label if set
+        const tierLabel = cfg.priceTiers[idx]?.label || '';
+        if (tierLabel) {
+          const lblEl = document.getElementById('pay-tier-label');
+          if (lblEl) { lblEl.textContent = tierLabel; lblEl.style.display = 'inline'; }
+        }
+      }
+      // Load accepted payment methods
+      if (cfg.paymentMethods && cfg.paymentMethods.length) {
+        PAYMENT_METHODS = cfg.paymentMethods;
+        // Update the display row
+        const pmEl = document.getElementById('pay-methods-val');
+        if (pmEl) {
+          const labels = { card:'Card', bank:'Bank Transfer', ussd:'USSD', qr:'QR Code', mobile_money:'Mobile Money' };
+          pmEl.textContent = PAYMENT_METHODS.map(m => labels[m] || m).join(' · ');
+        }
+      }
     }
   } catch(e) { console.warn('Could not load portal_config:', e); }
 }
@@ -207,16 +251,20 @@ async function init() {
     return;
   }
 
-  if (!appId || !adminId) {
+  // FIXED: appId is required. adminId may be 'unite13' or absent — be lenient.
+  if (!appId) {
     showCard('invalid-card');
     return;
   }
 
-  // Normal load
+  // Use configured tier amount if admin has set it, otherwise use URL param
+  const displayAmount = window._configuredAmount || amountNGN;
+
+  // Normal load — show payment card
   document.getElementById('pay-name').textContent   = name  || 'Applicant';
   document.getElementById('pay-email').textContent  = email || '';
-  document.getElementById('pay-amount').textContent = '₦' + amountNGN.toLocaleString();
-  document.getElementById('pay-appid').textContent  = appId;
+  document.getElementById('pay-amount').textContent = '₦' + displayAmount.toLocaleString();
+  document.getElementById('pay-appid').textContent  = appId || '—';
   document.getElementById('pay-mode-badge').textContent = IS_LIVE ? 'Live Mode' : 'Test Mode';
   document.getElementById('pay-mode-badge').style.color = IS_LIVE ? 'var(--green)' : 'var(--saffron)';
   showCard('pay-card');
@@ -225,69 +273,158 @@ async function init() {
 init();
 
 // ── Start Paystack payment (inline popup) ─────────────────────
-window.startPayment = async function() {
-  if (!PAYSTACK_PUBLIC_KEY) {
-    toast('error', 'Payment not configured', 'Admin has not set up Paystack keys yet.');
+// window.startPayment = async function() {
+//   if (!PAYSTACK_PUBLIC_KEY) {
+//     toast('error', 'Payment not configured', 'Admin has not set up Paystack keys yet.');
+//     return;
+//   }
+
+//   const btn  = document.getElementById('btn-pay');
+//   const text = document.getElementById('btn-pay-text');
+//   const spin = document.getElementById('pay-spin');
+//   btn.disabled     = true;
+//   text.textContent = 'Opening Paystack…';
+//   spin.classList.remove('hidden');
+
+//   const reference = `U13-${appId.substring(0,8).toUpperCase()}-${Date.now()}`;
+
+//   // Log pending payment — use admin-configured tier amount if available
+//   const _pendingAmount = window._configuredAmount || amountNGN;
+//   try {
+//     await addDoc(collection(db, 'payments'), {
+//       portalId: 'napps_unit13',
+//       adminId: 'napps_unit13',
+//       applicationId: appId,
+//       applicantName: name || 'Applicant', applicantEmail: email || '',
+//       amount: _pendingAmount, reference, status: 'pending',
+//       gateway: 'paystack', initiatedAt: Timestamp.now(),
+//     });
+//   } catch(e) { console.warn('Failed to log pending payment:', e); }
+
+//   // Reset button immediately — Paystack popup takes over
+//   btn.disabled     = false;
+//   text.textContent = 'Pay Now with Paystack';
+//   spin.classList.add('hidden');
+
+//   // NOTE: callback_url and callback are mutually exclusive in Paystack inline SDK.
+//   // Using callback_url causes "Attribute callback must be a valid function" error.
+//   // We use the inline callback only; the redirect fallback (returnRef) handles
+//   // cases where the popup is blocked or the user refreshes.
+//   // Use admin-configured tier amount if available, else fall back to URL param
+//   const finalAmountKobo = (window._configuredAmountKobo || amountKobo);
+//   const finalAmountNGN  = finalAmountKobo / 100;
+
+//   const paystackConfig = {
+//     key:      PAYSTACK_PUBLIC_KEY,
+//     email:    email || 'noemail@example.com',
+//     amount:   finalAmountKobo,
+//     currency: 'NGN',
+//     ref:      reference,
+//     // Pass admin-selected payment channels
+//     channels: PAYMENT_METHODS.length ? PAYMENT_METHODS : ['card', 'bank', 'ussd'],
+//     metadata: {
+//       custom_fields: [
+//         { display_name: 'Application ID', variable_name: 'application_id', value: appId },
+//         { display_name: 'Applicant Name', variable_name: 'applicant_name', value: name },
+//         { display_name: 'Amount (NGN)',   variable_name: 'amount_ngn',     value: finalAmountNGN },
+//       ]
+//     },
+//     onClose: function() {
+//       toast('info', 'Payment cancelled', 'Click "Pay Now" to try again.', 5000);
+//     },
+//     callback: function(response) {
+//       showCard('verifying-card');
+//       verifyAndFinish(response.reference);
+//     }
+//   };
+
+//   const handler = PaystackPop.setup(paystackConfig);
+//   handler.openIframe();
+// };
+window.startPayment = async function () {
+  if (!PAYSTACK_SECRET_KEY) {
+    toast('error', 'Payment not configured', 'Missing Paystack secret key');
+    return;
+  }
+
+  if (!email) {
+    toast('error', 'Missing email', 'Go back and fill the form again');
     return;
   }
 
   const btn  = document.getElementById('btn-pay');
   const text = document.getElementById('btn-pay-text');
   const spin = document.getElementById('pay-spin');
-  btn.disabled     = true;
-  text.textContent = 'Opening Paystack…';
+
+  btn.disabled = true;
+  text.textContent = "Redirecting…";
   spin.classList.remove('hidden');
 
   const reference = `U13-${appId.substring(0,8).toUpperCase()}-${Date.now()}`;
 
-  // Log pending payment
+  const finalAmountKobo = (window._configuredAmountKobo || amountKobo);
+
   try {
-    await addDoc(collection(db, 'payments'), {
-      portalId: 'napps_unit13',
-      adminId: 'napps_unit13',
-      applicationId: appId,
-      applicantName: name || 'Applicant', applicantEmail: email || '',
-      amount: amountNGN, reference, status: 'pending',
-      gateway: 'paystack', initiatedAt: Timestamp.now(),
+    const res = await fetch('/api/paystack/init', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secretKey: PAYSTACK_SECRET_KEY,
+        email: email,
+        amount: finalAmountKobo,
+        reference: reference,
+        callbackUrl: window.location.origin + window.location.pathname + "?reference=" + reference,
+        metadata: {
+          applicationId: appId,
+          name: name
+        }
+      })
     });
-  } catch(e) { console.warn('Failed to log pending payment:', e); }
 
-  // Reset button immediately — Paystack popup takes over
-  btn.disabled     = false;
-  text.textContent = 'Pay Now with Paystack';
-  spin.classList.add('hidden');
+    const data = await res.json();
 
-  // NOTE: callback_url and callback are mutually exclusive in Paystack inline SDK.
-  // Using callback_url causes "Attribute callback must be a valid function" error.
-  // We use the inline callback only; the redirect fallback (returnRef) handles
-  // cases where the popup is blocked or the user refreshes.
-  const handler = PaystackPop.setup({
-    key:      PAYSTACK_PUBLIC_KEY,
-    email:    email || 'noemail@example.com',
-    amount:   amountKobo,
-    currency: 'NGN',
-    ref:      reference,
-    metadata: {
-      custom_fields: [
-        { display_name: 'Application ID', variable_name: 'application_id', value: appId },
-        { display_name: 'Applicant Name', variable_name: 'applicant_name', value: name },
-      ]
-    },
-    onClose: function() {
-      toast('info', 'Payment cancelled', 'Click "Pay Now" to try again.', 5000);
-    },
-    callback: function(response) {
-      showCard('verifying-card');
-      verifyAndFinish(response.reference);
+    if (!data.status) {
+      throw new Error(data.message || "Initialization failed");
     }
-  });
-  handler.openIframe();
-};
 
+    // ✅ REDIRECT TO PAYSTACK HOSTED PAGE
+    window.location.href = data.data.authorization_url;
+
+  } catch (err) {
+    console.error(err);
+
+    toast(
+      'error',
+      'Payment failed',
+      'Could not start payment. Try again.'
+    );
+
+    btn.disabled = false;
+    text.textContent = "Pay Now with Paystack";
+    spin.classList.add('hidden');
+  }
+};
 // ── Verify payment server-side then update Firestore ──────────
 async function verifyAndFinish(reference) {
   try {
-    const res  = await fetch(`/api/paystack/verify/${encodeURIComponent(reference)}?secretKey=${encodeURIComponent(PAYSTACK_SECRET_KEY)}`);
+    const res = await fetch('/api/paystack/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secretKey: PAYSTACK_SECRET_KEY,
+        email: email || 'noemail@example.com',
+        amount: (window._configuredAmountKobo || amountKobo),
+        reference: reference,
+        metadata: {
+          custom_fields: [
+            { display_name: 'Application ID', variable_name: 'application_id', value: appId },
+            { display_name: 'Applicant Name', variable_name: 'applicant_name', value: name },
+            { display_name: 'Amount (NGN)', variable_name: 'amount_ngn', value: (window._configuredAmount || amountNGN) },
+          ]
+        },
+        callbackUrl: window.location.origin + '/index.html?reference=' + encodeURIComponent(reference)
+      })
+    });
     const data = await res.json();
 
     if (data.data?.status === 'success') {
@@ -301,13 +438,14 @@ async function verifyAndFinish(reference) {
             paymentRef: reference, paymentAmount: paidAmount,
             paymentDate: Timestamp.now(), paymentGateway: 'paystack',
           });
-          // Save payment record tagged with portal identifier so admin wallet can read it
+          // Save confirmed payment record tagged with portal identifier
           await addDoc(collection(db, 'payments'), {
-            portalId: 'napps_unit13',        // portal-level tag for wallet queries
-            adminId: 'napps_unit13',         // consistent string tag (not a UID)
+            portalId: 'napps_unit13',
+            adminId: 'napps_unit13',
             applicationId: appId,
             applicantName: name || 'Applicant', applicantEmail: email || '',
-            amount: paidAmount, reference,
+            amount: paidAmount,   // use Paystack-confirmed amount (most accurate)
+            reference,
             status: 'paid', gateway: 'paystack', paidAt: Timestamp.now(),
           });
         }
@@ -316,7 +454,11 @@ async function verifyAndFinish(reference) {
       document.getElementById('ref-box').textContent = reference;
       showCard('success-card');
       spawnConfetti();
-      toast('success', 'Payment confirmed! 🎉', 'Your registration is complete.', 8000);
+      toast('success', 'Payment confirmed! 🎉', 'Your registration is complete. Redirecting to home...', 5000);
+
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 5200);
 
     } else {
       showCard('pay-card');

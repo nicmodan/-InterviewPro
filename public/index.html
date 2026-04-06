@@ -198,6 +198,13 @@
     .check-label input:checked + .check-box{background:var(--teal);border-color:var(--teal)}
     .check-label input:checked + .check-box svg{opacity:1}
 
+    /* Radio buttons for fee tiers */
+    .radio-label{display:flex;align-items:flex-start;gap:.7rem;cursor:pointer;font-size:.88rem}
+    .radio-box{width:18px;height:18px;min-width:18px;border:2px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all var(--tr);margin-top:2px}
+    .radio-box::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--navy);opacity:0;transition:opacity var(--tr)}
+    .radio-label input{display:none}
+    .radio-label input:checked + .radio-box::after{opacity:1}
+
     /* Payment checkout */
     .pay-checkout{background:linear-gradient(135deg,var(--navy) 0%,#0f2a4a 100%);border-radius:var(--r-lg);padding:1.8rem;color:#fff;margin-bottom:1.4rem;position:relative;overflow:hidden}
     .pay-checkout::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='20' cy='20' r='10'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
@@ -405,6 +412,13 @@
             </label>
           </div>
 
+          <!-- Fee Tier Selection -->
+          <div class="fee-tier-selection" id="fee-tier-selection" style="background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:1.2rem;margin-bottom:1.2rem">
+            <label class="form-label">Select Fee Tier</label>
+            <div id="tier-radios"></div>
+            <p class="field-hint">Choose your preferred payment tier. The amount will be updated accordingly.</p>
+          </div>
+
           <!-- Paystack checkout box -->
           <div class="pay-checkout">
             <div class="pay-checkout-inner">
@@ -474,7 +488,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, getDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, getDoc, doc, Timestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyBbAu27RCUnU2Bd7dUhjpHCQpaV6i_UHDg",
@@ -491,6 +505,7 @@ const db  = getFirestore(app);
 // Public key and merchant ID are read from Firestore so the admin
 // can update them from the admin panel without redeploying.
 let PAYSTACK_PUBLIC_KEY = '';
+let PAYSTACK_SECRET_KEY = '';
 
 // ── State ─────────────────────────────────────────────────────────
 let candidates       = [];
@@ -499,23 +514,120 @@ let addRowVisible    = false;
 let paymentProcessed = false;
 let firestoreDocId   = null;
 let AMOUNT           = 5000; // overridden by Firestore portal_config on load
+let selectedTierIndex = 0; // index of selected price tier
+window._priceTiers    = []; // array of {label, amount}
+
+// Check for payment return
+const params = new URLSearchParams(window.location.search);
+const returnRef = params.get('reference') || params.get('trxref') || '';
 
 // ── Load portal config from Firestore ────────────────────────────
 // Reads portal_config/unite13 (public read allowed in Firestore rules).
 // Falls back to hardcoded defaults if doc is missing or offline.
 (async () => {
   try {
-    const snap = await getDoc(doc(db, 'portal_config', 'unite13'));
+    // Try napps_unit13 first, fall back to unite13 for backward compat
+    let snap = await getDoc(doc(db, 'portal_config', 'napps_unit13'));
+    if (!snap.exists()) snap = await getDoc(doc(db, 'portal_config', 'unite13'));
     if (snap.exists()) {
       const cfg = snap.data();
-      if (cfg.applicationFee && !isNaN(cfg.applicationFee)) AMOUNT            = Number(cfg.applicationFee);
-            if (cfg.paystackPublicKey && cfg.paystackPublicKey.trim()) PAYSTACK_PUBLIC_KEY = cfg.paystackPublicKey.trim();
+      if (cfg.applicationFee && !isNaN(cfg.applicationFee)) AMOUNT = Number(cfg.applicationFee);
+      // Load price tiers
+      if (cfg.priceTiers && cfg.priceTiers.length) {
+        window._priceTiers = cfg.priceTiers;
+        // Set AMOUNT to first tier by default
+        const tier = cfg.priceTiers[0];
+        if (tier && tier.amount && !isNaN(tier.amount)) AMOUNT = Number(tier.amount);
+      } else {
+        window._priceTiers = [{ label: 'Standard', amount: 5000 }];
+      }
+      if (cfg.paystackPublicKey && cfg.paystackPublicKey.trim()) PAYSTACK_PUBLIC_KEY = cfg.paystackPublicKey.trim();
+      if (cfg.paystackSecretKey && cfg.paystackSecretKey.trim()) PAYSTACK_SECRET_KEY = cfg.paystackSecretKey.trim();
     }
   } catch(e) {
     console.info('Portal config not found — using defaults.');
   }
   updatePriceDisplay();
+  renderTierRadios();
+  if (returnRef) {
+    await verifyAndFinish(returnRef);
+  }
 })();
+
+// ── Verify payment if returning from Paystack ───────────────────
+async function verifyAndFinish(reference) {
+  try {
+    const res = await fetch('/api/paystack/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secretKey: PAYSTACK_SECRET_KEY,
+        reference: reference
+      })
+    });
+    const data = await res.json();
+
+    if (data.data?.status === 'success') {
+      const paidAmount = (data.data.amount || 0) / 100;
+
+      // Find the payment doc by reference to get appId
+      const paymentsRef = collection(db, 'payments');
+      const q = query(paymentsRef, where('reference', '==', reference));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const paymentDoc = querySnapshot.docs[0];
+        const paymentData = paymentDoc.data();
+        const appId = paymentData.applicationId;
+
+        try {
+          // Update registration
+          await updateDoc(doc(db, 'napps_unit13_registrations', appId), {
+            status: 'registered', paymentStatus: 'paid',
+            paymentRef: reference, paymentAmount: paidAmount,
+            paymentDate: Timestamp.now(), paymentGateway: 'paystack',
+          });
+          // Update payment status
+          await updateDoc(paymentDoc.ref, {
+            status: 'paid', paidAt: Timestamp.now(),
+          });
+        } catch(fsErr) { console.error('Firestore write failed:', fsErr); }
+      }
+
+      // Show success message
+      toast('success', 'Payment Successful! 🎉', 'Your registration has been confirmed.', 8000);
+      // Optionally redirect or show success screen
+      // For now, just show toast
+
+    } else {
+      toast('warning', 'Payment not confirmed', `Status: ${data.data?.status || 'unknown'}. Please contact support.`, 7000);
+    }
+  } catch(err) {
+    console.error('Verify error:', err);
+    toast('error', 'Verification failed', 'Could not verify payment. Contact support.', 8000);
+  }
+}
+
+function renderTierRadios() {
+  if (!window._priceTiers || !window._priceTiers.length) {
+    window._priceTiers = [{ label: 'Standard', amount: 5000 }];
+  }
+  const container = document.getElementById('tier-radios');
+  if (!container) return;
+  container.innerHTML = window._priceTiers.map((t, i) => `
+    <label class="radio-label" style="display:block;margin-bottom:.5rem">
+      <input type="radio" name="fee-tier" value="${i}" ${i === selectedTierIndex ? 'checked' : ''} onchange="selectTier(${i})">
+      <span class="radio-box"></span>
+      <span>${esc(t.label || 'Unnamed')} — ₦${Number(t.amount || 0).toLocaleString()}</span>
+    </label>
+  `).join('');
+}
+
+window.selectTier = function(index) {
+  selectedTierIndex = index;
+  const tier = window._priceTiers[index];
+  if (tier && tier.amount) AMOUNT = Number(tier.amount);
+  updatePriceDisplay();
+};
 
 function updatePriceDisplay() {
   const fmt  = '₦' + AMOUNT.toLocaleString();
@@ -722,7 +834,8 @@ window.startPayment = async () => {
     + `&adminId=unite13`
     + `&name=${encodeURIComponent(name)}`
     + `&email=${encodeURIComponent(email)}`
-    + `&amount=${AMOUNT}`;
+    + `&amount=${AMOUNT}`
+    + `&tierIndex=${selectedTierIndex}`;
 
   setTimeout(() => { window.location.href = payUrl; }, 400);
 };

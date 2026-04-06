@@ -415,11 +415,12 @@
               <th>DOB</th>
               <th>Class</th>
               <th>Subject</th>
+              <th>Centre</th>
               <th>School</th>
               <th>State</th>
             </tr>
           </thead>
-          <tbody id="cands-tbody"><tr><td colspan="9" class="table-empty">Loading…</td></tr></tbody>
+          <tbody id="cands-tbody"><tr><td colspan="10" class="table-empty">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -455,28 +456,66 @@
           </div>
         </div>
 
-        <!-- Payment Settings — Paystack -->
+        <!-- Payment Settings — Multiple Methods + Per-Form Pricing + Paystack -->
         <div class="card" style="grid-column:1/-1">
-          <h3 style="font-size:1rem;margin-bottom:.3rem">💳 Payment &amp; Paystack Configuration</h3>
-          <p style="font-size:.82rem;color:var(--ink3);margin-bottom:1.2rem">Stored in Firestore and read by the registration form. Changes take effect immediately on next page load. Get your keys from <strong>dashboard.paystack.com → Settings → API Keys</strong>.</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
-            <div class="form-group">
-              <label class="form-label">Registration Fee (₦) <span style="color:var(--red)">*</span></label>
-              <div style="position:relative">
-                <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--ink3);font-size:.9rem">₦</span>
-                <input type="number" id="set-fee" class="form-input" placeholder="5000" min="100" style="padding-left:2rem"/>
-              </div>
-              <p class="field-hint">Amount each school pays to register</p>
+          <h3 style="font-size:1rem;margin-bottom:.3rem">💳 Payment &amp; Pricing Configuration</h3>
+          <p style="font-size:.82rem;color:var(--ink3);margin-bottom:1.2rem">All settings are saved to Firestore and take effect immediately on next page load.</p>
+
+          <!-- Per-Form Pricing Tiers -->
+          <div style="background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:1.2rem;margin-bottom:1.2rem">
+            <h4 style="font-size:.88rem;font-weight:700;margin-bottom:.6rem">💰 Registration Fee Tiers</h4>
+            <p style="font-size:.8rem;color:var(--ink3);margin-bottom:.8rem">Add multiple price tiers (e.g. Early Bird, Standard, Late Fee). The active tier is charged to applicants.</p>
+            <div id="price-tiers-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.7rem"></div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addPriceTier()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Tier
+            </button>
+          </div>
+          <div class="form-group" style="max-width:340px;margin-bottom:1.2rem">
+            <label class="form-label">Active Fee Tier (charged to applicants)</label>
+            <select id="set-active-tier" class="form-select"></select>
+            <p class="field-hint">This tier's amount is shown on the payment page</p>
+          </div>
+
+          <!-- Payment Methods -->
+          <div style="background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:1.2rem;margin-bottom:1.2rem">
+            <h4 style="font-size:.88rem;font-weight:700;margin-bottom:.6rem">🏦 Accepted Payment Channels</h4>
+            <p style="font-size:.8rem;color:var(--ink3);margin-bottom:.8rem">Select the channels applicants can use when paying via Paystack.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:.6rem">
+              <label style="display:flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:1.5px solid var(--line);border-radius:20px;cursor:pointer;font-size:.84rem;font-weight:500;transition:all var(--tr)" id="pm-label-card">
+                <input type="checkbox" id="pm-card" value="card" onchange="syncPaymentMethods(this)" style="display:none"/> 💳 Card
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:1.5px solid var(--line);border-radius:20px;cursor:pointer;font-size:.84rem;font-weight:500;transition:all var(--tr)" id="pm-label-bank">
+                <input type="checkbox" id="pm-bank" value="bank" onchange="syncPaymentMethods(this)" style="display:none"/> 🏦 Bank Transfer
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:1.5px solid var(--line);border-radius:20px;cursor:pointer;font-size:.84rem;font-weight:500;transition:all var(--tr)" id="pm-label-ussd">
+                <input type="checkbox" id="pm-ussd" value="ussd" onchange="syncPaymentMethods(this)" style="display:none"/> 📱 USSD
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:1.5px solid var(--line);border-radius:20px;cursor:pointer;font-size:.84rem;font-weight:500;transition:all var(--tr)" id="pm-label-qr">
+                <input type="checkbox" id="pm-qr" value="qr" onchange="syncPaymentMethods(this)" style="display:none"/> 📲 QR Code
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:1.5px solid var(--line);border-radius:20px;cursor:pointer;font-size:.84rem;font-weight:500;transition:all var(--tr)" id="pm-label-mobile_money">
+                <input type="checkbox" id="pm-mobile_money" value="mobile_money" onchange="syncPaymentMethods(this)" style="display:none"/> 📲 Mobile Money
+              </label>
             </div>
+          </div>
+
+          <!-- Paystack API Keys -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
             <div class="form-group">
               <label class="form-label">Paystack Public Key</label>
               <input type="text" id="set-ps-public-key" class="form-input" placeholder="pk_live_…" style="font-family:monospace;font-size:.82rem"/>
-              <p class="field-hint">Your live public key starts with pk_live_</p>
+              <p class="field-hint">Starts with pk_live_ (or pk_test_)</p>
             </div>
             <div class="form-group">
               <label class="form-label">Paystack Secret Key</label>
               <input type="password" id="set-ps-secret-key" class="form-input" placeholder="sk_live_…" style="font-family:monospace;font-size:.82rem"/>
-              <p class="field-hint">Your live secret key starts with sk_live_ — never exposed to browser</p>
+              <p class="field-hint">Never exposed to the browser</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Paystack Webhook Secret</label>
+              <input type="password" id="set-ps-webhook-secret" class="form-input" placeholder="whsec_…" style="font-family:monospace;font-size:.82rem"/>
+              <p class="field-hint">From Paystack → Settings → Webhooks</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:.5rem">
@@ -488,15 +527,11 @@
               </select>
               <p class="field-hint">Use test keys in Test Mode, live keys in Live Mode</p>
             </div>
-            <div class="form-group">
-              <label class="form-label">Paystack Webhook Secret</label>
-              <input type="password" id="set-ps-webhook-secret" class="form-input" placeholder="whsec_…" style="font-family:monospace;font-size:.82rem"/>
-              <p class="field-hint">From Paystack dashboard → Settings → Webhooks</p>
-            </div>
           </div>
+          <input type="hidden" id="set-fee" value="5000"/>
           <div style="background:var(--green-lt);border:1px solid rgba(34,197,94,.3);border-radius:var(--r-sm);padding:.8rem 1rem;font-size:.8rem;color:#15803d;display:flex;align-items:flex-start;gap:.5rem">
             <span>✅</span>
-            <span>Live mode is active — real payments will be charged. Ensure your live keys from <strong>dashboard.paystack.com → Settings → API Keys</strong> are entered above. Your Paystack business must be verified for live keys to work.</span>
+            <span>All changes are saved to Firestore and take effect immediately on the next page load.</span>
           </div>
         </div>
       </div>
@@ -509,7 +544,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.8rem">
         <div>
           <h2 style="font-size:1.4rem">Wallet &amp; Transfers</h2>
-          <p class="text-muted" style="font-size:.84rem">Manage your bank account and send Paystack transfers from your balance.</p>
+          <p class="text-muted" style="font-size:.84rem">Registration payments collected · pending wallet approvals · total transfers out.</p>
         </div>
         <button class="btn btn-primary" onclick="refreshWalletBalance()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:.4rem"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -522,17 +557,20 @@
         <div class="stat-card c-green">
           <div class="stat-icon">💰</div>
           <div class="stat-num" id="wallet-balance">—</div>
-          <div class="stat-lbl">Available Balance</div>
-        </div>
-        <div class="stat-card c-blue">
-          <div class="stat-icon">📤</div>
-          <div class="stat-num" id="wallet-total-withdrawn">—</div>
-          <div class="stat-lbl">Total Transferred</div>
+          <div class="stat-lbl">Live Available Balance</div>
+          <div style="font-size:.72rem;color:var(--ink4);margin-top:.35rem">Total paid by registered schools</div>
         </div>
         <div class="stat-card c-amber">
           <div class="stat-icon">⏳</div>
+          <div class="stat-num" id="wallet-total-withdrawn">—</div>
+          <div class="stat-lbl">Pending Amount</div>
+          <div style="font-size:.72rem;color:var(--ink4);margin-top:.35rem">Awaiting approval in wallet</div>
+        </div>
+        <div class="stat-card c-blue">
+          <div class="stat-icon">📤</div>
           <div class="stat-num" id="wallet-pending">—</div>
-          <div class="stat-lbl">Pending Transfers</div>
+          <div class="stat-lbl">Transfer Balance</div>
+          <div style="font-size:.72rem;color:var(--ink4);margin-top:.35rem">Successfully transferred out</div>
         </div>
       </div>
 
@@ -569,7 +607,7 @@
             </div>
             <button class="btn btn-primary btn-full" id="save-bank-btn-test" onclick="saveBankDetails()">
               <span>Use Test Account</span>
-              <div class="spin hidden" id="save-bank-spin"></div>
+              <div class="spin hidden" id="save-bank-spin-test"></div>
             </button>
             <p style="text-align:center;font-size:.75rem;color:var(--ink4);margin-top:.6rem">Test account pre-filled. Click to confirm and save.</p>
           </div>
@@ -650,10 +688,31 @@
         </div>
       </div>
 
+      <!-- 7-Day Withdrawal Notification Tracker -->
+      <div class="card" style="margin-top:1.5rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.5rem">
+          <div>
+            <h3 style="font-size:1rem;margin:0">⏰ 7-Day Withdrawal Tracker</h3>
+            <p style="font-size:.78rem;color:var(--ink4);margin-top:.2rem">Each payment becomes eligible for withdrawal 7 days after collection.</p>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span id="tracker-ready-badge" style="display:none;background:#dcfce7;color:#15803d;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px"></span>
+            <span id="tracker-pending-badge" style="display:none;background:#fef3c7;color:#b45309;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px"></span>
+          </div>
+        </div>
+        <div id="tracker-loading" style="text-align:center;padding:2rem;color:var(--ink4);font-size:.85rem">
+          <div class="spin" style="margin:0 auto .8rem;width:22px;height:22px"></div>Loading payment tracker…
+        </div>
+        <div id="tracker-empty" class="hidden" style="text-align:center;padding:2.5rem;color:var(--ink4);font-size:.86rem">
+          No paid registrations found yet.
+        </div>
+        <div id="tracker-list" class="hidden" style="display:flex;flex-direction:column;gap:.7rem"></div>
+      </div>
+
       <!-- Withdrawal History -->
       <div class="card" style="margin-top:1.5rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-          <h3 style="font-size:1rem">Transaction History</h3>
+          <h3 style="font-size:1rem">Live Transaction History</h3>
           <span style="font-size:.8rem;color:var(--ink4)" id="withdrawal-history-count"></span>
         </div>
         <div class="table-wrap">
@@ -702,7 +761,7 @@
 <script type="module">
 import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, addDoc, query, orderBy, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, addDoc, query, orderBy, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyBbAu27RCUnU2Bd7dUhjpHCQpaV6i_UHDg",
@@ -714,7 +773,47 @@ const firebaseConfig = {
 };
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+
+// ── Offline persistence (new non-deprecated API) ──────────────────
+// Uses IndexedDB cache + multi-tab support, replacing enableIndexedDbPersistence()
+let db;
+try {
+  db = initializeFirestore(app, {
+    cache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+  });
+} catch(e) {
+  // Falls back to in-memory if IndexedDB is unavailable (private browsing, etc.)
+  db = getFirestore(app);
+  console.warn('Firestore: offline persistence unavailable, using memory cache.', e.message);
+}
+
+// ── Network status banner ─────────────────────────────────────────
+(function() {
+  function showBanner(online) {
+    let el = document.getElementById('network-banner');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'network-banner';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;padding:.5rem 1rem;font-size:.82rem;font-weight:600;text-align:center;transition:transform .3s ease';
+      document.body.prepend(el);
+    }
+    if (online) {
+      el.style.background = '#dcfce7';
+      el.style.color = '#15803d';
+      el.textContent = '✅ Back online — reconnecting to Firestore…';
+      el.style.transform = 'translateY(0)';
+      setTimeout(() => { el.style.transform = 'translateY(-100%)'; }, 3000);
+    } else {
+      el.style.background = '#fee2e2';
+      el.style.color = '#dc2626';
+      el.textContent = '⚠️ No internet connection — working from cache. Changes will sync when back online.';
+      el.style.transform = 'translateY(0)';
+    }
+  }
+  window.addEventListener('offline', () => showBanner(false));
+  window.addEventListener('online',  () => showBanner(true));
+  if (!navigator.onLine) showBanner(false);
+})();
 
 // ── State ─────────────────────────────────────────────────────────
 let allRegistrations = [];   // all docs from napps_unit13_registrations
@@ -723,7 +822,27 @@ let adminData        = {};
 let currentUser      = null;
 
 // ── Auth ──────────────────────────────────────────────────────────
+// If Firebase Auth doesn't respond in 12s (e.g. ERR_TIMED_OUT when offline),
+// show a clear message instead of an infinite spinner.
+const authTimeoutId = setTimeout(() => {
+  const loader  = document.getElementById('auth-loading');
+  const spinEl  = loader?.querySelector('.al-spin');
+  const textEl  = loader?.querySelector('.al-text');
+  if (spinEl) spinEl.style.display = 'none';
+  if (textEl) {
+    textEl.innerHTML = '⚠️ No internet connection.<br><span style="font-size:.8rem;opacity:.7">Please check your network and reload the page.</span>';
+    textEl.style.color = '#fbbf24';
+    textEl.style.lineHeight = '1.6';
+  }
+  const reloadBtn = document.createElement('button');
+  reloadBtn.textContent = 'Reload';
+  reloadBtn.style.cssText = 'margin-top:1.2rem;padding:.5rem 1.4rem;border-radius:8px;background:#f59e0b;color:#0b1120;font-weight:700;border:none;cursor:pointer;font-size:.9rem';
+  reloadBtn.onclick = () => location.reload();
+  loader?.appendChild(reloadBtn);
+}, 12000);
+
 onAuthStateChanged(auth, async (user) => {
+  clearTimeout(authTimeoutId);   // auth responded — cancel the timeout
   const loader = document.getElementById('auth-loading');
   if (!user) { window.location.replace('login.html'); return; }
   currentUser = user;
@@ -764,18 +883,43 @@ onAuthStateChanged(auth, async (user) => {
     const cfgSnap = await getDoc(doc(db, 'portal_config', 'napps_unit13'));
     if (cfgSnap.exists()) {
       const cfg = cfgSnap.data();
-      document.getElementById('set-fee').value                 = cfg.applicationFee || 5000;
-      document.getElementById('set-ps-public-key').value    = cfg.paystackPublicKey    || '';
-      document.getElementById('set-ps-secret-key').value    = cfg.paystackSecretKey    || '';
-      document.getElementById('set-ps-webhook-secret').value= cfg.paystackWebhookSecret|| '';
-      document.getElementById('set-ps-live').value          = String(cfg.isLive !== undefined ? cfg.isLive : true);
+      document.getElementById('set-fee').value           = cfg.applicationFee || 5000;
+      document.getElementById('set-ps-public-key').value = cfg.paystackPublicKey    || '';
+      document.getElementById('set-ps-secret-key').value = cfg.paystackSecretKey    || '';
+      document.getElementById('set-ps-webhook-secret').value = cfg.paystackWebhookSecret || '';
+      document.getElementById('set-ps-live').value       = String(cfg.isLive !== undefined ? cfg.isLive : true);
+      // Load multi-tier prices
+      if (cfg.priceTiers && cfg.priceTiers.length) {
+        window._priceTiers = cfg.priceTiers;
+      } else {
+        window._priceTiers = [{ label: 'Standard', amount: cfg.applicationFee || 5000 }];
+      }
+      window.renderPriceTiers();
+      // Set active tier after render
+      setTimeout(() => {
+        const sel = document.getElementById('set-active-tier');
+        if (sel && cfg.activeTierIndex !== undefined) sel.value = cfg.activeTierIndex;
+      }, 50);
+      // Load payment methods
+      applyPaymentMethodsUI(cfg.paymentMethods || ['card','bank','ussd']);
     } else {
       // No config doc yet — pre-fill with empty defaults
-      document.getElementById('set-fee').value                 = 5000;
-      document.getElementById('set-ps-live').value             = 'true';
+      document.getElementById('set-fee').value   = 5000;
+      document.getElementById('set-ps-live').value = 'true';
+      window._priceTiers = [{ label: 'Standard', amount: 5000 }];
+      window.renderPriceTiers();
+      applyPaymentMethodsUI(['card','bank','ussd']);
     }
   } catch(e) {
-    console.warn('Could not load portal_config:', e.message);
+    const isOffline = e.message?.includes('offline') || e.code === 'unavailable' || !navigator.onLine;
+    if (isOffline) {
+      toast('warning', 'Working offline', 'Settings loaded from cache. Connect to internet to get latest config.', 6000);
+    } else {
+      console.warn('Could not load portal_config:', e.message);
+    }
+    window._priceTiers = [{ label: 'Standard', amount: 5000 }];
+    window.renderPriceTiers();
+    applyPaymentMethodsUI(['card','bank','ussd']);
   }
 
   loadData();
@@ -838,8 +982,8 @@ window.executeReset = async () => {
     allRegistrations = [];
     allCandidateFlat = [];
     renderOverview();
-    renderSchoolsTab();
-    renderCandidatesTab();
+    renderSchoolsTable(allRegistrations);
+    renderCandidatesTable(allCandidateFlat);
   } catch(e) {
     toast('error','Reset failed', e.message);
     btn.textContent = 'Delete All Data';
@@ -847,15 +991,22 @@ window.executeReset = async () => {
   }
 };
 
-// ── Load Data ─────────────────────────────────────────────────────
-async function loadData() {
+// ── Load Data (with retry for transient Firestore timeouts) ───────
+async function loadData(attempt = 1) {
+  const MAX_ATTEMPTS = 4;
+  const BACKOFF_MS   = [0, 1500, 3500, 7000];
   try {
     const snap = await getDocs(query(collection(db, 'napps_unit13_registrations'), orderBy('submittedAt','desc')));
     allRegistrations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(e) {
-    // Possibly needs index or empty
+    if (attempt < MAX_ATTEMPTS) {
+      console.warn(`loadData attempt ${attempt} failed (${e.message}), retrying in ${BACKOFF_MS[attempt]}ms…`);
+      setTimeout(() => loadData(attempt + 1), BACKOFF_MS[attempt]);
+      return;
+    }
+    // Final failure — use empty state but don't crash
     allRegistrations = [];
-    toast('info','Data loaded','No registrations found yet, or an index is pending.');
+    toast('warning', 'Connection issue', 'Could not load registrations. Data will reload automatically when connection is restored.', 7000);
   }
 
   // Flatten candidates
@@ -1250,10 +1401,106 @@ window.exportAllData = () => {
 };
 
 // ── Settings ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// PRICE TIERS & PAYMENT METHODS
+// NOTE: All functions exposed via window.* because script is type="module"
+// and inline onchange handlers in dynamic HTML cannot access module scope.
+// ══════════════════════════════════════════════════════════════════
+
+window._priceTiers      = [{label:'Standard', amount:5000}];
+window._paymentMethods  = ['card','bank','ussd'];
+
+window.addPriceTier = function() {
+  window._priceTiers.push({label:'New Tier', amount:0});
+  window.renderPriceTiers();
+};
+
+window.removePriceTier = function(idx) {
+  if (window._priceTiers.length <= 1) {
+    toast('warning','At least one tier required','You cannot remove the last fee tier.');
+    return;
+  }
+  window._priceTiers.splice(idx, 1);
+  window.renderPriceTiers();
+};
+
+window.updateTierLabel = function(idx, val) {
+  window._priceTiers[idx].label = val;
+  window.renderPriceTierSelect();
+};
+
+window.updateTierAmount = function(idx, val) {
+  window._priceTiers[idx].amount = Number(val) || 0;
+  window.renderPriceTierSelect();
+};
+
+window.renderPriceTiers = function() {
+  const list = document.getElementById('price-tiers-list');
+  if (!list) return;
+  list.innerHTML = window._priceTiers.map((t, i) => `
+    <div style="display:flex;align-items:center;gap:.5rem;background:var(--white);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:.5rem .8rem;flex-wrap:wrap">
+      <input type="text" value="${esc(t.label)}"
+        onchange="window.updateTierLabel(${i}, this.value)"
+        style="border:none;outline:none;font-size:.85rem;font-weight:600;flex:1;min-width:100px;background:transparent"
+        placeholder="Tier name e.g. Standard"/>
+      <div style="display:flex;align-items:center;gap:.3rem">
+        <span style="font-weight:700;color:var(--ink3);font-size:.9rem">₦</span>
+        <input type="number" value="${t.amount}" min="0"
+          onchange="window.updateTierAmount(${i}, this.value)"
+          style="border:1.5px solid var(--line);border-radius:6px;padding:.3rem .5rem;font-size:.9rem;font-weight:700;width:110px;color:var(--navy)"
+          placeholder="0"/>
+      </div>
+      <button onclick="window.removePriceTier(${i})"
+        style="background:var(--red-lt);color:var(--red);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0">✕</button>
+    </div>`).join('');
+  window.renderPriceTierSelect();
+};
+
+window.renderPriceTierSelect = function() {
+  const sel = document.getElementById('set-active-tier');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = window._priceTiers.map((t, i) =>
+    `<option value="${i}" ${String(cur)===String(i)||(!cur&&i===0)?'selected':''}>${esc(t.label||'Unnamed')} — ₦${Number(t.amount||0).toLocaleString()}</option>`
+  ).join('');
+};
+
+// ── Payment Methods ───────────────────────────────────────────────
+window.syncPaymentMethods = function(cb) {
+  const id  = cb.value;
+  const lbl = document.getElementById('pm-label-' + id);
+  if (cb.checked) {
+    if (!window._paymentMethods.includes(id)) window._paymentMethods.push(id);
+    if (lbl) { lbl.style.background='var(--navy)'; lbl.style.color='#fff'; lbl.style.borderColor='var(--navy)'; }
+  } else {
+    window._paymentMethods = window._paymentMethods.filter(m => m !== id);
+    if (lbl) { lbl.style.background=''; lbl.style.color=''; lbl.style.borderColor='var(--line)'; }
+  }
+};
+
+function applyPaymentMethodsUI(methods) {
+  window._paymentMethods = methods || ['card','bank','ussd'];
+  ['card','bank','ussd','qr','mobile_money'].forEach(id => {
+    const cb  = document.getElementById('pm-' + id);
+    const lbl = document.getElementById('pm-label-' + id);
+    if (!cb || !lbl) return;
+    cb.checked = window._paymentMethods.includes(id);
+    if (cb.checked) {
+      lbl.style.background='var(--navy)'; lbl.style.color='#fff'; lbl.style.borderColor='var(--navy)';
+    } else {
+      lbl.style.background=''; lbl.style.color=''; lbl.style.borderColor='var(--line)';
+    }
+  });
+}
+
 window.saveSettings = async () => {
   if (!currentUser) return;
 
-  const fee = Number(document.getElementById('set-fee').value) || 5000;
+  // Collect active tier amount for backward compat
+  const activeTierIdx = Number(document.getElementById('set-active-tier').value) || 0;
+  const activeTier    = window._priceTiers[activeTierIdx] || window._priceTiers[0];
+  const fee = activeTier ? Number(activeTier.amount) || 5000 : 5000;
+
   const formSettings = {
     title:       document.getElementById('set-title').value.trim(),
     description: document.getElementById('set-desc').value.trim(),
@@ -1262,12 +1509,15 @@ window.saveSettings = async () => {
 
   // Portal config — stored separately so index.html can read without auth
   const portalConfig = {
-    applicationFee:   fee,
-    paystackPublicKey:    document.getElementById('set-ps-public-key').value.trim(),
-    paystackSecretKey:    document.getElementById('set-ps-secret-key').value.trim(),
-    paystackWebhookSecret:document.getElementById('set-ps-webhook-secret').value.trim(),
-    isLive:               document.getElementById('set-ps-live').value !== 'false',
-    updatedAt:        Timestamp.now(),
+    applicationFee:        fee,                      // backward-compat single fee
+    priceTiers:            window._priceTiers,        // new multi-tier array
+    activeTierIndex:       activeTierIdx,
+    paymentMethods:        window._paymentMethods,
+    paystackPublicKey:     document.getElementById('set-ps-public-key').value.trim(),
+    paystackSecretKey:     document.getElementById('set-ps-secret-key').value.trim(),
+    paystackWebhookSecret: document.getElementById('set-ps-webhook-secret').value.trim(),
+    isLive:                document.getElementById('set-ps-live').value !== 'false',
+    updatedAt:             Timestamp.now(),
   };
 
   try {
@@ -1281,7 +1531,11 @@ window.saveSettings = async () => {
     // Save portal_config — upsert (setDoc with merge)
     await setDoc(doc(db,'portal_config','napps_unit13'), portalConfig, { merge: true });
 
-    toast('success','Settings saved!', `Registration fee set to ₦${fee.toLocaleString()}.`);
+    // Reset wallet init flag so new Paystack keys are picked up next time the Wallet tab is opened
+    walletInitDone = false;
+
+    toast('success','Settings saved!',
+      `Active fee: ₦${fee.toLocaleString()} · ${window._paymentMethods.length} payment method(s) enabled.`);
   } catch(e) { toast('error','Save failed', e.message); }
 };
 
@@ -1311,7 +1565,7 @@ let paystackIsLive     = true;
 let walletInitDone     = false;
 
 async function initWalletTab() {
-  if (walletInitDone) { renderWithdrawalHistory(); return; }
+  if (walletInitDone) { renderWithdrawalHistory(); renderWithdrawalTracker(); return; }
   walletInitDone = true;
 
   // Pull secret key + mode from portal_config
@@ -1341,8 +1595,9 @@ async function initWalletTab() {
 
   // Load Paystack balance
   await refreshWalletBalance();
-  // Load transfer history
+  // Load transfer history and tracker
   renderWithdrawalHistory();
+  renderWithdrawalTracker();
 }
 
 // ── Show test or live bank panel based on key ─────────────────────────────
@@ -1410,55 +1665,94 @@ async function loadBankList() {
 }
 
 window.refreshWalletBalance = async function() {
-  document.getElementById('wallet-balance').textContent = '…';
-  document.getElementById('wallet-total-withdrawn').textContent = '…';
-  document.getElementById('wallet-pending').textContent = '…';
+  console.log('Starting wallet balance refresh...');
+  // Clear all balance elements first
+  const balanceEl   = document.getElementById('wallet-balance');
+  const pendingAmtEl = document.getElementById('wallet-total-withdrawn'); // Pending Amount
+  const transferedEl = document.getElementById('wallet-pending');          // Transfer Balance
 
-  if (!paystackSecretKey) {
-    // Try reload from Firestore in case settings were just saved
-    try {
-      const snap = await getDoc(doc(db, 'portal_config', 'napps_unit13'));
-      if (snap.exists()) paystackSecretKey = snap.data().paystackSecretKey || '';
-    } catch(e) {}
-  }
+  balanceEl.innerHTML    = '…';
+  pendingAmtEl.innerHTML = '…';
+  transferedEl.innerHTML = '…';
 
-  if (!paystackSecretKey) {
-    document.getElementById('wallet-balance').textContent = 'No key';
-    document.getElementById('wallet-total-withdrawn').textContent = '—';
-    document.getElementById('wallet-pending').textContent = '—';
-    toast('warning', 'Paystack key not set', 'Add your Paystack Secret Key in Settings first.', 6000);
-    return;
-  }
-
+  // ── 1. Live Available Balance — sum of ALL successful Paystack transactions ──
   try {
-    // Balance is computed from Firestore payments/withdrawals collections.
-    // Payments are tagged with portalId:'napps_unit13' (set by payment.html).
-    const pSnap = await getDocs(
-      query(collection(db, 'payments'),
-            where('portalId', '==', 'napps_unit13'),
-            where('status', '==', 'paid'))
-    );
-    let totalPaid = 0;
-    pSnap.forEach(d => { totalPaid += (d.data().amount || 0); });
+    if (!paystackSecretKey) {
+      // Try reload from Firestore
+      try {
+        const snap = await getDoc(doc(db, 'portal_config', 'napps_unit13'));
+        if (snap.exists()) paystackSecretKey = snap.data().paystackSecretKey || '';
+      } catch(e) {}
+    }
 
+    if (!paystackSecretKey) {
+      balanceEl.innerHTML = 'Key not set';
+      toast('warning', 'Paystack key not set', 'Add your Paystack Secret Key in Settings first.', 6000);
+    } else {
+      // Paginate through ALL Paystack transactions and sum successful ones
+      let totalBalanceKobo = 0;
+      let page = 1;
+      const perPage = 100;
+      let hasMore = true;
+
+      while (hasMore) {
+        const txRes  = await fetch(`/api/paystack/transactions?secretKey=${encodeURIComponent(paystackSecretKey)}&perPage=${perPage}&page=${page}`);
+        const txData = await txRes.json();
+
+        if (!txData.status || !txData.data || txData.data.length === 0) {
+          hasMore = false;
+        } else {
+          txData.data.forEach(tx => {
+            if (tx.status === 'success') {
+              totalBalanceKobo += (tx.amount || 0); // Paystack stores in kobo
+            }
+          });
+          // If fewer results than perPage, we've reached the last page
+          if (txData.data.length < perPage) {
+            hasMore = false;
+          } else {
+            page++;
+          }
+        }
+      }
+
+      const totalBalanceNaira = totalBalanceKobo / 100;
+      balanceEl.innerHTML = '\u20a6' + totalBalanceNaira.toLocaleString();
+      console.log('Live Available Balance (sum of all Paystack transactions):', totalBalanceNaira);
+    }
+  } catch(e) {
+    console.warn('Could not load Paystack transaction balance:', e);
+    balanceEl.innerHTML = 'Unable to load';
+  }
+
+  // ── 2 & 3. Pending Amount & Transfer Balance — from withdrawals collection ──
+  try {
     const wSnap = await getDocs(
       query(collection(db, 'withdrawals'), where('adminId', '==', currentUser.uid))
     );
-    let totalWithdrawn = 0;
-    let pendingCount   = 0;
+    let totalPendingAmount = 0;       // amounts pending approval in wallet
+    let totalTransferBalance = 0;     // amounts successfully transferred out
+
     wSnap.forEach(d => {
       const wd = d.data();
-      totalWithdrawn += (wd.amount || 0);
-      if (wd.status === 'pending' || wd.status === 'otp') pendingCount++;
+      if (wd.status === 'success') {
+        totalTransferBalance += (wd.amount || 0);
+      } else if (wd.status === 'pending' || wd.status === 'otp') {
+        totalPendingAmount += (wd.amount || 0);
+      }
     });
 
-    const available = totalPaid - totalWithdrawn;
-    document.getElementById('wallet-balance').textContent         = '₦' + Math.max(0, available).toLocaleString();
-    document.getElementById('wallet-total-withdrawn').textContent = '₦' + totalWithdrawn.toLocaleString();
-    document.getElementById('wallet-pending').textContent         = pendingCount > 0 ? pendingCount + ' pending' : '0';
+    // Pending Amount — from Paystack balance pending approval
+    pendingAmtEl.innerHTML = '₦' + totalPendingAmount.toLocaleString();
+    // Transfer Balance — total money transferred out and approved
+    transferedEl.innerHTML = '₦' + totalTransferBalance.toLocaleString();
+
+    console.log('Pending Amount:', totalPendingAmount, '| Transfer Balance:', totalTransferBalance);
   } catch(e) {
-    console.warn('Balance fetch failed:', e);
-    document.getElementById('wallet-balance').textContent = 'Error';
+    console.warn('Could not load withdrawal stats:', e);
+    pendingAmtEl.innerHTML = '—';
+    transferedEl.innerHTML = '—';
+    toast('error', 'Connection failed', 'Could not load wallet stats. Check your connection.', 5000);
   }
 };
 
@@ -1537,7 +1831,6 @@ window.resolveAccountName = function() {
 
 window.saveBankDetails = async function() {
   const isTest = !paystackIsLive || paystackSecretKey.startsWith('sk_test_');
-  const spin   = document.getElementById('save-bank-spin');
 
   let bankDetails;
 
@@ -1565,10 +1858,12 @@ window.saveBankDetails = async function() {
     bankDetails = { bankCode, bankName, accountNumber: accountNum, accountName, isTest: false, updatedAt: Timestamp.now() };
   }
 
-  const btnId = isTest ? 'save-bank-btn-test' : 'save-bank-btn';
-  const btn   = document.getElementById(btnId);
+  const btnId  = isTest ? 'save-bank-btn-test' : 'save-bank-btn';
+  const spinId = isTest ? 'save-bank-spin-test' : 'save-bank-spin';
+  const btn    = document.getElementById(btnId);
+  const spin   = document.getElementById(spinId);
   if (btn) btn.disabled = true;
-  spin.classList.remove('hidden');
+  if (spin) spin.classList.remove('hidden');
 
   try {
     await updateDoc(doc(db, 'admins', currentUser.uid), { bankDetails });
@@ -1579,7 +1874,7 @@ window.saveBankDetails = async function() {
   } catch(e) { toast('error', 'Save failed', e.message); }
   finally {
     if (btn) btn.disabled = false;
-    spin.classList.add('hidden');
+    if (spin) spin.classList.add('hidden');
   }
 };
 
@@ -1733,11 +2028,138 @@ window.initiateWithdrawal = async function() {
 };
 
 
+// ── 7-Day Withdrawal Tracker ─────────────────────────────────────────────────
+async function renderWithdrawalTracker() {
+  const listEl    = document.getElementById('tracker-list');
+  const loadEl    = document.getElementById('tracker-loading');
+  const emptyEl   = document.getElementById('tracker-empty');
+  const readyBadge  = document.getElementById('tracker-ready-badge');
+  const pendingBadge = document.getElementById('tracker-pending-badge');
+
+  try {
+    const regSnap = await getDocs(collection(db, 'napps_unit13_registrations'));
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const items = [];
+
+    regSnap.forEach(d => {
+      const reg = d.data();
+      if (reg.paymentStatus !== 'paid') return;
+
+      // Use paymentDate first, fall back to submittedAt
+      const payTs = reg.paymentDate || reg.submittedAt;
+      if (!payTs) return;
+
+      const payMs      = payTs.toDate().getTime();
+      const elapsedMs  = now - payMs;
+      const pct        = Math.min(100, Math.round((elapsedMs / SEVEN_DAYS_MS) * 100));
+      const daysLeft   = Math.max(0, Math.ceil((SEVEN_DAYS_MS - elapsedMs) / 86400000));
+      const isReady    = elapsedMs >= SEVEN_DAYS_MS;
+      const amount     = Number(reg.paymentAmount) || 0;
+      const schoolName = reg.school?.name || reg.proprietor?.firstName + ' ' + (reg.proprietor?.lastName || '') || 'Applicant';
+      const ref        = reg.paymentRef || reg.id?.substring(0, 10).toUpperCase() || '—';
+
+      items.push({ payMs, pct, daysLeft, isReady, amount, schoolName, ref, payDate: payTs.toDate() });
+    });
+
+    loadEl.style.display = 'none';
+
+    if (!items.length) {
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    // Sort: ready items first, then by days left ascending
+    items.sort((a, b) => {
+      if (a.isReady !== b.isReady) return a.isReady ? -1 : 1;
+      return a.daysLeft - b.daysLeft;
+    });
+
+    const readyCount   = items.filter(i => i.isReady).length;
+    const pendingCount = items.length - readyCount;
+
+    if (readyCount > 0) {
+      readyBadge.style.display = 'inline-flex';
+      readyBadge.textContent   = `✅ ${readyCount} Ready to Withdraw`;
+    }
+    if (pendingCount > 0) {
+      pendingBadge.style.display = 'inline-flex';
+      pendingBadge.textContent   = `⏳ ${pendingCount} Pending`;
+    }
+
+    listEl.innerHTML = items.map(item => {
+      const barColor  = item.isReady ? '#22c55e' : item.pct >= 70 ? '#f59e0b' : '#3b82f6';
+      const bgColor   = item.isReady ? 'rgba(34,197,94,.06)' : 'rgba(248,250,252,1)';
+      const border    = item.isReady ? '1.5px solid rgba(34,197,94,.3)' : '1px solid var(--line)';
+      const label     = item.isReady
+        ? '<span style="background:#dcfce7;color:#15803d;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">✅ READY</span>'
+        : `<span style="background:#fef3c7;color:#b45309;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap">⏳ ${item.daysLeft}d left</span>`;
+      const payDateStr = item.payDate.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+      const unlockStr  = item.isReady ? 'Unlocked' : new Date(item.payMs + 7*24*60*60*1000).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
+      return `<div style="background:${bgColor};border:${border};border-radius:10px;padding:.9rem 1.1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.6rem">
+          <div style="display:flex;align-items:center;gap:.6rem;min-width:0">
+            <div style="font-size:1.1rem;flex-shrink:0">${item.isReady ? '🟢' : '🔵'}</div>
+            <div style="min-width:0">
+              <div style="font-weight:700;font-size:.88rem;color:var(--ink1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px">${item.schoolName}</div>
+              <div style="font-size:.72rem;color:var(--ink4);margin-top:.1rem">Paid: ${payDateStr} · Ref: ${item.ref}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.6rem;flex-shrink:0">
+            <span style="font-weight:800;font-size:.95rem;color:var(--ink1)">₦${item.amount.toLocaleString()}</span>
+            ${label}
+          </div>
+        </div>
+        <div style="position:relative;height:7px;background:var(--line);border-radius:99px;overflow:hidden">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${item.pct}%;background:${barColor};border-radius:99px;transition:width .6s ease"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:.35rem">
+          <span style="font-size:.68rem;color:var(--ink4)">${item.pct}% of 7 days</span>
+          <span style="font-size:.68rem;color:var(--ink4)">${item.isReady ? '🔓 ' : '🔒 '}Unlock: ${unlockStr}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    listEl.classList.remove('hidden');
+
+  } catch(e) {
+    loadEl.innerHTML = `<p style="color:var(--red);font-size:.84rem">Error loading tracker: ${esc(e.message)}</p>`;
+    console.warn('Tracker error:', e);
+  }
+}
+
 async function renderWithdrawalHistory() {
   const tbody = document.getElementById('withdrawal-tbody');
   tbody.innerHTML = '<tr><td colspan="7" class="table-empty">Loading…</td></tr>';
   try {
-    // Load incoming payments (tagged by portalId)
+    // Load LIVE Paystack transactions
+    let livePayRows = [];
+    try {
+      if (paystackSecretKey) {
+        const txRes = await fetch(`/api/paystack/transactions?secretKey=${encodeURIComponent(paystackSecretKey)}&perPage=100&page=1`);
+        const txData = await txRes.json();
+
+        if (txData.status && txData.data) {
+          txData.data.forEach(tx => {
+            if (tx.status === 'success') {
+              livePayRows.push({
+                type:      'in',
+                date:      new Timestamp(Math.floor(new Date(tx.created_at).getTime() / 1000), 0),
+                amount:    tx.amount / 100, // Convert from kobo to naira
+                desc:      esc(tx.customer?.email ? `Payment from ${tx.customer.email}` : 'Live Payment'),
+                detail:    esc(tx.reference || '—'),
+                reference: esc(tx.reference || '—'),
+                status:    'success',
+                source:    'live' // Mark as live data
+              });
+            }
+          });
+        }
+      }
+    } catch(e) { console.warn('Could not load live Paystack transactions:', e.message); }
+
+    // Load Firebase payments (fallback/backup)
     let payRows = [];
     try {
       const pSnap = await getDocs(
@@ -1756,9 +2178,10 @@ async function renderWithdrawalHistory() {
           detail:    esc(p.applicantEmail || '—'),
           reference: esc(p.reference || '—'),
           status:    'success',
+          source:    'firebase' // Mark as Firebase data
         });
       });
-    } catch(e) { console.warn('Could not load payments:', e.message); }
+    } catch(e) { console.warn('Could not load Firebase payments:', e.message); }
 
     // Load withdrawals (tagged by admin UID)
     let wRows = [];
@@ -1778,12 +2201,36 @@ async function renderWithdrawalHistory() {
           detail:    esc(w.accountNumber || '—'),
           reference: esc(w.reference || '—'),
           status:    w.status || 'pending',
+          source:    'firebase'
         });
       });
     } catch(e) { console.warn('Could not load withdrawals:', e.message); }
 
-    // Merge and sort by date descending
-    const allRows = [...payRows, ...wRows].sort((a, b) => {
+    // Merge all rows, preferring live data over Firebase duplicates
+    const allRowsMap = new Map();
+
+    // Add live Paystack transactions first (highest priority)
+    livePayRows.forEach(row => {
+      const key = `${row.reference}-${row.amount}`;
+      allRowsMap.set(key, { ...row, priority: 3 });
+    });
+
+    // Add Firebase payments (medium priority)
+    payRows.forEach(row => {
+      const key = `${row.reference}-${row.amount}`;
+      if (!allRowsMap.has(key) || allRowsMap.get(key).priority < 2) {
+        allRowsMap.set(key, { ...row, priority: 2 });
+      }
+    });
+
+    // Add withdrawals (lowest priority, always include)
+    wRows.forEach(row => {
+      const key = `withdrawal-${row.reference}-${row.amount}`;
+      allRowsMap.set(key, { ...row, priority: 1 });
+    });
+
+    // Convert to array and sort by date descending
+    const allRows = Array.from(allRowsMap.values()).sort((a, b) => {
       const aT = a.date?.toDate?.()?.getTime() || 0;
       const bT = b.date?.toDate?.()?.getTime() || 0;
       return bT - aT;
@@ -1807,12 +2254,15 @@ async function renderWithdrawalHistory() {
       const typeBadge   = isIn
         ? `<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:20px;font-size:.73rem;font-weight:700">&#x2B06; IN</span>`
         : `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:20px;font-size:.73rem;font-weight:700">&#x2B07; OUT</span>`;
+      const sourceBadge = row.source === 'live'
+        ? `<span style="background:#dbeafe;color:#1d4ed8;padding:1px 6px;border-radius:10px;font-size:.65rem;font-weight:600;margin-left:4px">LIVE</span>`
+        : `<span style="background:#f3f4f6;color:#6b7280;padding:1px 6px;border-radius:10px;font-size:.65rem;font-weight:600;margin-left:4px">SYNC</span>`;
       const amtColor    = isIn ? '#15803d' : '#dc2626';
       const amtSign     = isIn ? '+' : '−';
 
       return `<tr>
         <td style="font-size:.8rem;white-space:nowrap">${fmtDate(row.date)}</td>
-        <td>${typeBadge}</td>
+        <td>${typeBadge}${sourceBadge}</td>
         <td style="font-weight:700;color:${amtColor}">${amtSign}₦${row.amount.toLocaleString()}</td>
         <td>${row.desc}</td>
         <td style="font-size:.8rem;color:var(--ink3)">${row.detail}</td>

@@ -386,3 +386,155 @@ ul { list-style:none }
   text-overflow: ellipsis;
   max-width: 280px;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   FIX 4 — COMPREHENSIVE MOBILE RESPONSIVENESS
+   Applied to: entire site, registration form, admin dashboard
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Global base fixes ── */
+*, *::before, *::after { box-sizing: border-box }
+html, body { max-width: 100%; overflow-x: hidden }
+img, svg { max-width: 100% }
+
+/* ── Dashboard layout: stack sidebar below on mobile ── */
+@media(max-width:800px) {
+  .dash-layout { grid-template-columns: 1fr !important }
+  .dash-sidebar { display: none !important }
+  .dash-main { padding: 1rem !important }
+}
+
+/* ── Nav: handle long titles and too-many items ── */
+@media(max-width:900px) {
+  .dash-nav { flex-wrap: nowrap; gap: .5rem; padding: 0 .75rem }
+  .nav-right { gap: .4rem }
+  .nav-right a { display: none } /* hide "Registration Form" link on mobile */
+}
+@media(max-width:480px) {
+  .nav-avatar { display: none }
+  .nav-right { font-size: .75rem }
+  .brand-name { max-width: 160px !important }
+}
+
+/* ── Settings grid: stack on mobile ── */
+@media(max-width:640px) {
+  .settings-grid { grid-template-columns: 1fr !important }
+}
+
+/* ── Payment settings 3-col grid ── */
+@media(max-width:800px) {
+  /* Admin payment config */
+  div[style*="grid-template-columns:1fr 1fr 1fr"] { display: grid !important; grid-template-columns: 1fr !important }
+  div[style*="grid-template-columns:1fr 1fr"]:not(.stat-grid):not(.charts-row):not(.ad-grid) { display: grid !important; grid-template-columns: 1fr !important }
+}
+
+/* ── Admin wallet: stack cards ── */
+@media(max-width:700px) {
+  div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important }
+  div[style*="grid-template-columns:repeat(auto-fit"] { grid-template-columns: 1fr 1fr !important }
+}
+@media(max-width:480px) {
+  div[style*="grid-template-columns:repeat(auto-fit"] { grid-template-columns: 1fr !important }
+}
+
+/* ── Stat grid ── */
+@media(max-width:600px) {
+  .stat-grid { grid-template-columns: 1fr 1fr !important }
+}
+@media(max-width:380px) {
+  .stat-grid { grid-template-columns: 1fr !important }
+}
+
+/* ── Charts row ── */
+@media(max-width:700px) {
+  .charts-row { grid-template-columns: 1fr !important }
+}
+
+/* ── Data tables: always scrollable on mobile ── */
+.table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; width: 100% }
+.data-table { min-width: 600px }
+.cand-mini  { min-width: 560px }
+
+/* ── Modal: full-width on mobile ── */
+@media(max-width:600px) {
+  .modal-box { max-width: 100% !important; margin: .5rem !important; max-height: 96vh !important }
+  .modal-body { padding: 1rem !important }
+  .modal-head { padding: 1rem !important }
+  .confirm-box { max-width: 100% !important; margin: .5rem !important }
+  .confirm-foot { flex-direction: column !important }
+  .confirm-foot .btn { width: 100% }
+  .ad-grid { grid-template-columns: 1fr !important }
+}
+
+/* ── Page header: wrap on mobile ── */
+@media(max-width:640px) {
+  .pg-hd { flex-direction: column; align-items: flex-start !important }
+  .pg-hd > div:last-child { width: 100% }
+  .filter-bar { flex-direction: column; align-items: stretch !important }
+  .search-box { width: 100% !important }
+  .search-box input { width: 100% !important }
+  .export-bar { width: 100% }
+  .export-bar .btn { width: 100% }
+  select.form-select { width: 100% !important }
+}
+
+/* ── Hero stat: wrap tighter ── */
+@media(max-width:540px) {
+  .hero-stat { flex-direction: column !important; text-align: center; gap: 1.2rem }
+  .hero-stat-nums { justify-content: center; gap: 1.5rem }
+  .hsn-val { font-size: 2rem }
+}
+
+/* ── Wallet cards sidebar ── */
+@media(max-width:700px) {
+  .tab-panel #tab-wallet > div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important }
+}
+
+/* ── Registration form (index.html): form grid ── */
+@media(max-width:640px) {
+  .form-outer { grid-template-columns: 1fr !important; padding: 1.2rem 1rem 3rem !important }
+  .form-aside-steps { display: none !important }
+  .fg { grid-template-columns: 1fr !important }
+  .fg .full { grid-column: 1 !important }
+  .step-foot { flex-direction: column; gap: .6rem }
+  .step-foot .btn { width: 100%; justify-content: center }
+  .rv-grid { grid-template-columns: 1fr !important }
+}
+
+/* ── Payment page: padding on tiny screens ── */
+@media(max-width:480px) {
+  .pay-wrap { padding: 0 }
+  .pay-card-top { padding: 1.5rem 1.2rem }
+  .pay-card-body { padding: 1.2rem }
+  .pay-fee-amt { font-size: 2.4rem }
+  .pay-logo span { font-size: .95rem }
+  body { padding: 1rem .5rem }
+}
+
+/* ── Candidate rows in modal ── */
+@media(max-width:600px) {
+  .cand-mini-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch }
+}
+
+/* ── Checkout step in index.html ── */
+@media(max-width:540px) {
+  .checkout-row { flex-direction: column !important; align-items: flex-start !important }
+}
+
+/* ── Remove right-panel sign-out button on tiny nav ── */
+@media(max-width:360px) {
+  #nav-admin-name { display: none }
+}
+
+/* ── Fix overflow in form cards ── */
+.card { word-break: break-word; overflow-wrap: break-word }
+input.form-input, select.form-select, textarea.form-textarea {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* ── Toast: full-width on mobile ── */
+@media(max-width:480px) {
+  #toast-wrap { left: .5rem !important; right: .5rem !important; bottom: .5rem !important }
+  .toast { width: 100% !important }
+}
